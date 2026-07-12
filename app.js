@@ -150,7 +150,7 @@ function commonOptions(view) {
     },
     elements: {
       line: { tension: 0.22, borderWidth: 2.35 },
-      point: { radius: rowsToDraw().length === 1 ? 4 : 0, hoverRadius: 4, hitRadius: 12 },
+      point: { radius: rowsToDraw().length === 1 ? 6 : 0, hoverRadius: 6, hitRadius: 14 },
     },
   };
 
@@ -314,9 +314,21 @@ async function init() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     dataset = await response.json();
     rows = normalizeRows(dataset.series);
-    const latestFromSeries = rows.at(-1) || null;
     const latestFromFile = normalizeLatest(dataset.latest);
-    const latest = latestFromSeries || latestFromFile;
+
+    // data.json에 최신 요약값만 있고 series가 비어 있어도 차트를 표시한다.
+    // series가 오래된 경우에는 같은 날짜를 교체하거나 최신 날짜를 뒤에 추가한다.
+    if (latestFromFile) {
+      const sameDateIndex = rows.findIndex((row) => row.date === latestFromFile.date);
+      if (sameDateIndex >= 0) {
+        rows[sameDateIndex] = latestFromFile;
+      } else {
+        rows.push(latestFromFile);
+      }
+      rows.sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    const latest = rows.at(-1) || latestFromFile;
 
     renderLatest(latest);
     if (!latest) {
