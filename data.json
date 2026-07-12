@@ -1,6 +1,1513 @@
 {
   "source": "https://www.hangon.co.kr/credit-balance",
-  "updated_at": null,
-  "message": "GitHub Actions에서 ‘신용잔고 데이터 자동 갱신’을 수동 실행하면 실제 데이터가 채워집니다.",
-  "series": []
+  "updated_at": "2026-07-12T09:52:16.368224+00:00",
+  "unit": "trillion_krw",
+  "series": [
+    {
+      "date": "2025-07-01",
+      "credit_trillion": 20.7347,
+      "deposit_trillion": 70.4133,
+      "ratio": 29.4471
+    },
+    {
+      "date": "2025-07-02",
+      "credit_trillion": 20.7367,
+      "deposit_trillion": 66.0533,
+      "ratio": 31.3939
+    },
+    {
+      "date": "2025-07-03",
+      "credit_trillion": 20.6369,
+      "deposit_trillion": 66.2851,
+      "ratio": 31.1335
+    },
+    {
+      "date": "2025-07-04",
+      "credit_trillion": 20.661,
+      "deposit_trillion": 65.384,
+      "ratio": 31.5995
+    },
+    {
+      "date": "2025-07-07",
+      "credit_trillion": 20.6499,
+      "deposit_trillion": 67.3378,
+      "ratio": 30.6661
+    },
+    {
+      "date": "2025-07-08",
+      "credit_trillion": 20.6756,
+      "deposit_trillion": 66.5038,
+      "ratio": 31.0894
+    },
+    {
+      "date": "2025-07-09",
+      "credit_trillion": 20.7072,
+      "deposit_trillion": 65.1958,
+      "ratio": 31.7616
+    },
+    {
+      "date": "2025-07-10",
+      "credit_trillion": 20.8617,
+      "deposit_trillion": 65.9371,
+      "ratio": 31.6388
+    },
+    {
+      "date": "2025-07-11",
+      "credit_trillion": 21.1168,
+      "deposit_trillion": 66.3692,
+      "ratio": 31.8172
+    },
+    {
+      "date": "2025-07-14",
+      "credit_trillion": 21.1853,
+      "deposit_trillion": 68.0815,
+      "ratio": 31.1176
+    },
+    {
+      "date": "2025-07-15",
+      "credit_trillion": 21.2485,
+      "deposit_trillion": 66.8521,
+      "ratio": 31.7843
+    },
+    {
+      "date": "2025-07-16",
+      "credit_trillion": 21.3163,
+      "deposit_trillion": 65.5959,
+      "ratio": 32.4964
+    },
+    {
+      "date": "2025-07-17",
+      "credit_trillion": 21.4342,
+      "deposit_trillion": 66.635,
+      "ratio": 32.1666
+    },
+    {
+      "date": "2025-07-18",
+      "credit_trillion": 21.5888,
+      "deposit_trillion": 65.3644,
+      "ratio": 33.0284
+    },
+    {
+      "date": "2025-07-21",
+      "credit_trillion": 21.6,
+      "deposit_trillion": 65.2654,
+      "ratio": 33.0956
+    },
+    {
+      "date": "2025-07-22",
+      "credit_trillion": 21.5736,
+      "deposit_trillion": 65.6078,
+      "ratio": 32.8827
+    },
+    {
+      "date": "2025-07-23",
+      "credit_trillion": 21.5662,
+      "deposit_trillion": 66.4023,
+      "ratio": 32.4781
+    },
+    {
+      "date": "2025-07-24",
+      "credit_trillion": 21.6674,
+      "deposit_trillion": 64.7666,
+      "ratio": 33.4546
+    },
+    {
+      "date": "2025-07-25",
+      "credit_trillion": 21.6725,
+      "deposit_trillion": 65.1623,
+      "ratio": 33.2593
+    },
+    {
+      "date": "2025-07-28",
+      "credit_trillion": 21.6261,
+      "deposit_trillion": 67.7248,
+      "ratio": 31.9323
+    },
+    {
+      "date": "2025-07-29",
+      "credit_trillion": 21.6352,
+      "deposit_trillion": 67.3577,
+      "ratio": 32.1199
+    },
+    {
+      "date": "2025-07-30",
+      "credit_trillion": 21.7053,
+      "deposit_trillion": 68.2368,
+      "ratio": 31.8088
+    },
+    {
+      "date": "2025-07-31",
+      "credit_trillion": 21.6353,
+      "deposit_trillion": 68.6852,
+      "ratio": 31.4992
+    },
+    {
+      "date": "2025-08-01",
+      "credit_trillion": 21.6114,
+      "deposit_trillion": 71.2971,
+      "ratio": 30.3118
+    },
+    {
+      "date": "2025-08-04",
+      "credit_trillion": 21.6154,
+      "deposit_trillion": 70.2943,
+      "ratio": 30.7499
+    },
+    {
+      "date": "2025-08-05",
+      "credit_trillion": 21.4818,
+      "deposit_trillion": 67.0081,
+      "ratio": 32.0585
+    },
+    {
+      "date": "2025-08-06",
+      "credit_trillion": 21.332,
+      "deposit_trillion": 66.2811,
+      "ratio": 32.1841
+    },
+    {
+      "date": "2025-08-07",
+      "credit_trillion": 21.4049,
+      "deposit_trillion": 66.8765,
+      "ratio": 32.0066
+    },
+    {
+      "date": "2025-08-08",
+      "credit_trillion": 21.6137,
+      "deposit_trillion": 67.473,
+      "ratio": 32.0331
+    },
+    {
+      "date": "2025-08-11",
+      "credit_trillion": 21.8619,
+      "deposit_trillion": 67.9618,
+      "ratio": 32.1679
+    },
+    {
+      "date": "2025-08-12",
+      "credit_trillion": 22.0135,
+      "deposit_trillion": 68.0836,
+      "ratio": 32.333
+    },
+    {
+      "date": "2025-08-13",
+      "credit_trillion": 22.0256,
+      "deposit_trillion": 67.8339,
+      "ratio": 32.4699
+    },
+    {
+      "date": "2025-08-14",
+      "credit_trillion": 22.0345,
+      "deposit_trillion": 69.3973,
+      "ratio": 31.7512
+    },
+    {
+      "date": "2025-08-18",
+      "credit_trillion": 22.0663,
+      "deposit_trillion": 67.6019,
+      "ratio": 32.6415
+    },
+    {
+      "date": "2025-08-19",
+      "credit_trillion": 22.1015,
+      "deposit_trillion": 67.493,
+      "ratio": 32.7464
+    },
+    {
+      "date": "2025-08-20",
+      "credit_trillion": 22.1185,
+      "deposit_trillion": 68.5082,
+      "ratio": 32.2859
+    },
+    {
+      "date": "2025-08-21",
+      "credit_trillion": 21.9831,
+      "deposit_trillion": 67.4631,
+      "ratio": 32.5854
+    },
+    {
+      "date": "2025-08-22",
+      "credit_trillion": 21.7762,
+      "deposit_trillion": 66.6222,
+      "ratio": 32.6861
+    },
+    {
+      "date": "2025-08-25",
+      "credit_trillion": 21.7799,
+      "deposit_trillion": 66.1248,
+      "ratio": 32.9376
+    },
+    {
+      "date": "2025-08-26",
+      "credit_trillion": 21.6874,
+      "deposit_trillion": 68.274,
+      "ratio": 31.7652
+    },
+    {
+      "date": "2025-08-27",
+      "credit_trillion": 21.7208,
+      "deposit_trillion": 66.8617,
+      "ratio": 32.4862
+    },
+    {
+      "date": "2025-08-28",
+      "credit_trillion": 21.9033,
+      "deposit_trillion": 67.359,
+      "ratio": 32.5173
+    },
+    {
+      "date": "2025-08-29",
+      "credit_trillion": 21.9874,
+      "deposit_trillion": 66.2992,
+      "ratio": 33.1639
+    },
+    {
+      "date": "2025-09-01",
+      "credit_trillion": 22.0512,
+      "deposit_trillion": 68.4773,
+      "ratio": 32.2022
+    },
+    {
+      "date": "2025-09-02",
+      "credit_trillion": 22.0883,
+      "deposit_trillion": 66.1858,
+      "ratio": 33.3732
+    },
+    {
+      "date": "2025-09-03",
+      "credit_trillion": 22.0169,
+      "deposit_trillion": 65.4596,
+      "ratio": 33.6343
+    },
+    {
+      "date": "2025-09-04",
+      "credit_trillion": 21.977,
+      "deposit_trillion": 65.9403,
+      "ratio": 33.3286
+    },
+    {
+      "date": "2025-09-05",
+      "credit_trillion": 22.046,
+      "deposit_trillion": 64.9796,
+      "ratio": 33.9276
+    },
+    {
+      "date": "2025-09-08",
+      "credit_trillion": 22.0794,
+      "deposit_trillion": 65.8009,
+      "ratio": 33.5549
+    },
+    {
+      "date": "2025-09-09",
+      "credit_trillion": 22.1761,
+      "deposit_trillion": 68.3785,
+      "ratio": 32.4314
+    },
+    {
+      "date": "2025-09-10",
+      "credit_trillion": 22.2212,
+      "deposit_trillion": 70.5907,
+      "ratio": 31.4789
+    },
+    {
+      "date": "2025-09-11",
+      "credit_trillion": 22.2713,
+      "deposit_trillion": 71.0118,
+      "ratio": 31.3628
+    },
+    {
+      "date": "2025-09-12",
+      "credit_trillion": 22.2336,
+      "deposit_trillion": 72.8873,
+      "ratio": 30.5041
+    },
+    {
+      "date": "2025-09-15",
+      "credit_trillion": 22.3228,
+      "deposit_trillion": 74.7644,
+      "ratio": 29.8575
+    },
+    {
+      "date": "2025-09-16",
+      "credit_trillion": 22.3489,
+      "deposit_trillion": 74.9281,
+      "ratio": 29.8271
+    },
+    {
+      "date": "2025-09-17",
+      "credit_trillion": 22.5964,
+      "deposit_trillion": 73.0258,
+      "ratio": 30.943
+    },
+    {
+      "date": "2025-09-18",
+      "credit_trillion": 22.6958,
+      "deposit_trillion": 73.6065,
+      "ratio": 30.834
+    },
+    {
+      "date": "2025-09-19",
+      "credit_trillion": 22.8583,
+      "deposit_trillion": 72.5519,
+      "ratio": 31.5061
+    },
+    {
+      "date": "2025-09-22",
+      "credit_trillion": 22.9798,
+      "deposit_trillion": 73.5608,
+      "ratio": 31.2392
+    },
+    {
+      "date": "2025-09-23",
+      "credit_trillion": 23.1004,
+      "deposit_trillion": 74.9213,
+      "ratio": 30.8329
+    },
+    {
+      "date": "2025-09-24",
+      "credit_trillion": 23.1714,
+      "deposit_trillion": 75.1971,
+      "ratio": 30.8142
+    },
+    {
+      "date": "2025-09-25",
+      "credit_trillion": 23.326,
+      "deposit_trillion": 75.9952,
+      "ratio": 30.694
+    },
+    {
+      "date": "2025-09-26",
+      "credit_trillion": 23.3496,
+      "deposit_trillion": 75.8974,
+      "ratio": 30.7647
+    },
+    {
+      "date": "2025-09-29",
+      "credit_trillion": 23.2689,
+      "deposit_trillion": 76.8085,
+      "ratio": 30.2947
+    },
+    {
+      "date": "2025-09-30",
+      "credit_trillion": 23.3055,
+      "deposit_trillion": 76.4474,
+      "ratio": 30.4857
+    },
+    {
+      "date": "2025-10-01",
+      "credit_trillion": 23.16,
+      "deposit_trillion": 76.5301,
+      "ratio": 30.2626
+    },
+    {
+      "date": "2025-10-02",
+      "credit_trillion": 23.1618,
+      "deposit_trillion": 73.1359,
+      "ratio": 31.6695
+    },
+    {
+      "date": "2025-10-10",
+      "credit_trillion": 23.0622,
+      "deposit_trillion": 76.3225,
+      "ratio": 30.2168
+    },
+    {
+      "date": "2025-10-13",
+      "credit_trillion": 23.0871,
+      "deposit_trillion": 80.1901,
+      "ratio": 28.7905
+    },
+    {
+      "date": "2025-10-14",
+      "credit_trillion": 23.3755,
+      "deposit_trillion": 79.9749,
+      "ratio": 29.2285
+    },
+    {
+      "date": "2025-10-15",
+      "credit_trillion": 23.6415,
+      "deposit_trillion": 78.6514,
+      "ratio": 30.0586
+    },
+    {
+      "date": "2025-10-16",
+      "credit_trillion": 23.5815,
+      "deposit_trillion": 76.5374,
+      "ratio": 30.8104
+    },
+    {
+      "date": "2025-10-17",
+      "credit_trillion": 23.6895,
+      "deposit_trillion": 78.3145,
+      "ratio": 30.2492
+    },
+    {
+      "date": "2025-10-20",
+      "credit_trillion": 23.8621,
+      "deposit_trillion": 80.6257,
+      "ratio": 29.5961
+    },
+    {
+      "date": "2025-10-21",
+      "credit_trillion": 23.7235,
+      "deposit_trillion": 80.3298,
+      "ratio": 29.5326
+    },
+    {
+      "date": "2025-10-22",
+      "credit_trillion": 24.0376,
+      "deposit_trillion": 80.4803,
+      "ratio": 29.8677
+    },
+    {
+      "date": "2025-10-23",
+      "credit_trillion": 24.2112,
+      "deposit_trillion": 80.1684,
+      "ratio": 30.2004
+    },
+    {
+      "date": "2025-10-24",
+      "credit_trillion": 24.4404,
+      "deposit_trillion": 79.4825,
+      "ratio": 30.7494
+    },
+    {
+      "date": "2025-10-27",
+      "credit_trillion": 24.5751,
+      "deposit_trillion": 81.0911,
+      "ratio": 30.3055
+    },
+    {
+      "date": "2025-10-28",
+      "credit_trillion": 24.6115,
+      "deposit_trillion": 83.8731,
+      "ratio": 29.3437
+    },
+    {
+      "date": "2025-10-29",
+      "credit_trillion": 24.8787,
+      "deposit_trillion": 85.9159,
+      "ratio": 28.957
+    },
+    {
+      "date": "2025-10-30",
+      "credit_trillion": 25.0564,
+      "deposit_trillion": 85.7136,
+      "ratio": 29.2327
+    },
+    {
+      "date": "2025-10-31",
+      "credit_trillion": 25.3064,
+      "deposit_trillion": 85.4569,
+      "ratio": 29.6131
+    },
+    {
+      "date": "2025-11-03",
+      "credit_trillion": 25.2369,
+      "deposit_trillion": 86.7704,
+      "ratio": 29.0847
+    },
+    {
+      "date": "2025-11-04",
+      "credit_trillion": 25.2862,
+      "deposit_trillion": 86.822,
+      "ratio": 29.1242
+    },
+    {
+      "date": "2025-11-05",
+      "credit_trillion": 25.5914,
+      "deposit_trillion": 88.2709,
+      "ratio": 28.9919
+    },
+    {
+      "date": "2025-11-06",
+      "credit_trillion": 25.6371,
+      "deposit_trillion": 86.9557,
+      "ratio": 29.4829
+    },
+    {
+      "date": "2025-11-07",
+      "credit_trillion": 25.9846,
+      "deposit_trillion": 85.7222,
+      "ratio": 30.3126
+    },
+    {
+      "date": "2025-11-10",
+      "credit_trillion": 25.8829,
+      "deposit_trillion": 83.1097,
+      "ratio": 31.1431
+    },
+    {
+      "date": "2025-11-11",
+      "credit_trillion": 25.7546,
+      "deposit_trillion": 83.0304,
+      "ratio": 31.0183
+    },
+    {
+      "date": "2025-11-12",
+      "credit_trillion": 25.769,
+      "deposit_trillion": 82.4686,
+      "ratio": 31.247
+    },
+    {
+      "date": "2025-11-13",
+      "credit_trillion": 26.0015,
+      "deposit_trillion": 82.5845,
+      "ratio": 31.4847
+    },
+    {
+      "date": "2025-11-14",
+      "credit_trillion": 26.1453,
+      "deposit_trillion": 82.7246,
+      "ratio": 31.6052
+    },
+    {
+      "date": "2025-11-17",
+      "credit_trillion": 26.3491,
+      "deposit_trillion": 85.9448,
+      "ratio": 30.6582
+    },
+    {
+      "date": "2025-11-18",
+      "credit_trillion": 26.5481,
+      "deposit_trillion": 79.6615,
+      "ratio": 33.3261
+    },
+    {
+      "date": "2025-11-19",
+      "credit_trillion": 26.5945,
+      "deposit_trillion": 80.0276,
+      "ratio": 33.2317
+    },
+    {
+      "date": "2025-11-20",
+      "credit_trillion": 26.6022,
+      "deposit_trillion": 78.2121,
+      "ratio": 34.0129
+    },
+    {
+      "date": "2025-11-21",
+      "credit_trillion": 26.5248,
+      "deposit_trillion": 78.8263,
+      "ratio": 33.6497
+    },
+    {
+      "date": "2025-11-24",
+      "credit_trillion": 26.5155,
+      "deposit_trillion": 80.1953,
+      "ratio": 33.0637
+    },
+    {
+      "date": "2025-11-25",
+      "credit_trillion": 26.4169,
+      "deposit_trillion": 75.6223,
+      "ratio": 34.9327
+    },
+    {
+      "date": "2025-11-26",
+      "credit_trillion": 26.2609,
+      "deposit_trillion": 77.9546,
+      "ratio": 33.6874
+    },
+    {
+      "date": "2025-11-27",
+      "credit_trillion": 26.2164,
+      "deposit_trillion": 77.4712,
+      "ratio": 33.8402
+    },
+    {
+      "date": "2025-11-28",
+      "credit_trillion": 26.2235,
+      "deposit_trillion": 77.912,
+      "ratio": 33.6578
+    },
+    {
+      "date": "2025-12-01",
+      "credit_trillion": 26.3597,
+      "deposit_trillion": 80.1767,
+      "ratio": 32.877
+    },
+    {
+      "date": "2025-12-02",
+      "credit_trillion": 26.5692,
+      "deposit_trillion": 77.0673,
+      "ratio": 34.4753
+    },
+    {
+      "date": "2025-12-03",
+      "credit_trillion": 26.5934,
+      "deposit_trillion": 76.9644,
+      "ratio": 34.5529
+    },
+    {
+      "date": "2025-12-04",
+      "credit_trillion": 26.6648,
+      "deposit_trillion": 77.407,
+      "ratio": 34.4475
+    },
+    {
+      "date": "2025-12-05",
+      "credit_trillion": 26.8477,
+      "deposit_trillion": 78.1371,
+      "ratio": 34.3597
+    },
+    {
+      "date": "2025-12-08",
+      "credit_trillion": 27.1251,
+      "deposit_trillion": 79.386,
+      "ratio": 34.1686
+    },
+    {
+      "date": "2025-12-09",
+      "credit_trillion": 27.1034,
+      "deposit_trillion": 80.5754,
+      "ratio": 33.6373
+    },
+    {
+      "date": "2025-12-10",
+      "credit_trillion": 27.1761,
+      "deposit_trillion": 80.5665,
+      "ratio": 33.7313
+    },
+    {
+      "date": "2025-12-11",
+      "credit_trillion": 27.1616,
+      "deposit_trillion": 81.6415,
+      "ratio": 33.2694
+    },
+    {
+      "date": "2025-12-12",
+      "credit_trillion": 27.095,
+      "deposit_trillion": 83.9419,
+      "ratio": 32.2783
+    },
+    {
+      "date": "2025-12-15",
+      "credit_trillion": 27.1739,
+      "deposit_trillion": 82.8647,
+      "ratio": 32.7931
+    },
+    {
+      "date": "2025-12-16",
+      "credit_trillion": 27.097,
+      "deposit_trillion": 84.3528,
+      "ratio": 32.1234
+    },
+    {
+      "date": "2025-12-17",
+      "credit_trillion": 27.2943,
+      "deposit_trillion": 83.5263,
+      "ratio": 32.6775
+    },
+    {
+      "date": "2025-12-18",
+      "credit_trillion": 27.1086,
+      "deposit_trillion": 81.7107,
+      "ratio": 33.1763
+    },
+    {
+      "date": "2025-12-19",
+      "credit_trillion": 27.0341,
+      "deposit_trillion": 81.0344,
+      "ratio": 33.3613
+    },
+    {
+      "date": "2025-12-22",
+      "credit_trillion": 27.0097,
+      "deposit_trillion": 81.7196,
+      "ratio": 33.0517
+    },
+    {
+      "date": "2025-12-23",
+      "credit_trillion": 27.0002,
+      "deposit_trillion": 81.0769,
+      "ratio": 33.302
+    },
+    {
+      "date": "2025-12-24",
+      "credit_trillion": 27.0369,
+      "deposit_trillion": 83.304,
+      "ratio": 32.4557
+    },
+    {
+      "date": "2025-12-26",
+      "credit_trillion": 27.0103,
+      "deposit_trillion": 85.4251,
+      "ratio": 31.6187
+    },
+    {
+      "date": "2025-12-29",
+      "credit_trillion": 27.056,
+      "deposit_trillion": 86.4758,
+      "ratio": 31.2874
+    },
+    {
+      "date": "2025-12-30",
+      "credit_trillion": 27.0241,
+      "deposit_trillion": 87.3986,
+      "ratio": 30.9205
+    },
+    {
+      "date": "2026-01-02",
+      "credit_trillion": 27.1839,
+      "deposit_trillion": 89.5211,
+      "ratio": 30.3659
+    },
+    {
+      "date": "2026-01-05",
+      "credit_trillion": 27.3878,
+      "deposit_trillion": 89.1304,
+      "ratio": 30.7278
+    },
+    {
+      "date": "2026-01-06",
+      "credit_trillion": 27.4568,
+      "deposit_trillion": 88.6339,
+      "ratio": 30.9778
+    },
+    {
+      "date": "2026-01-07",
+      "credit_trillion": 27.6277,
+      "deposit_trillion": 89.765,
+      "ratio": 30.7778
+    },
+    {
+      "date": "2026-01-08",
+      "credit_trillion": 27.945,
+      "deposit_trillion": 92.8537,
+      "ratio": 30.0957
+    },
+    {
+      "date": "2026-01-09",
+      "credit_trillion": 28.1037,
+      "deposit_trillion": 88.872,
+      "ratio": 31.6227
+    },
+    {
+      "date": "2026-01-12",
+      "credit_trillion": 28.2804,
+      "deposit_trillion": 88.988,
+      "ratio": 31.78
+    },
+    {
+      "date": "2026-01-13",
+      "credit_trillion": 28.3147,
+      "deposit_trillion": 88.0489,
+      "ratio": 32.1579
+    },
+    {
+      "date": "2026-01-14",
+      "credit_trillion": 28.351,
+      "deposit_trillion": 89.3099,
+      "ratio": 31.7445
+    },
+    {
+      "date": "2026-01-15",
+      "credit_trillion": 28.5016,
+      "deposit_trillion": 92.603,
+      "ratio": 30.7783
+    },
+    {
+      "date": "2026-01-16",
+      "credit_trillion": 28.6904,
+      "deposit_trillion": 91.2182,
+      "ratio": 31.4525
+    },
+    {
+      "date": "2026-01-19",
+      "credit_trillion": 28.7513,
+      "deposit_trillion": 93.8623,
+      "ratio": 30.6314
+    },
+    {
+      "date": "2026-01-20",
+      "credit_trillion": 28.6807,
+      "deposit_trillion": 95.526,
+      "ratio": 30.024
+    },
+    {
+      "date": "2026-01-21",
+      "credit_trillion": 28.8292,
+      "deposit_trillion": 96.3317,
+      "ratio": 29.927
+    },
+    {
+      "date": "2026-01-22",
+      "credit_trillion": 28.6649,
+      "deposit_trillion": 95.7276,
+      "ratio": 29.9442
+    },
+    {
+      "date": "2026-01-23",
+      "credit_trillion": 28.765,
+      "deposit_trillion": 93.8095,
+      "ratio": 30.6632
+    },
+    {
+      "date": "2026-01-26",
+      "credit_trillion": 29.091,
+      "deposit_trillion": 97.5405,
+      "ratio": 29.8245
+    },
+    {
+      "date": "2026-01-27",
+      "credit_trillion": 28.9847,
+      "deposit_trillion": 100.2826,
+      "ratio": 28.903
+    },
+    {
+      "date": "2026-01-28",
+      "credit_trillion": 29.283,
+      "deposit_trillion": 103.3623,
+      "ratio": 28.3304
+    },
+    {
+      "date": "2026-01-29",
+      "credit_trillion": 29.7586,
+      "deposit_trillion": 103.7072,
+      "ratio": 28.6948
+    },
+    {
+      "date": "2026-01-30",
+      "credit_trillion": 29.8946,
+      "deposit_trillion": 106.0325,
+      "ratio": 28.1938
+    },
+    {
+      "date": "2026-02-02",
+      "credit_trillion": 30.0562,
+      "deposit_trillion": 111.2965,
+      "ratio": 27.0055
+    },
+    {
+      "date": "2026-02-03",
+      "credit_trillion": 30.1102,
+      "deposit_trillion": 105.5845,
+      "ratio": 28.5176
+    },
+    {
+      "date": "2026-02-04",
+      "credit_trillion": 30.5174,
+      "deposit_trillion": 100.8172,
+      "ratio": 30.27
+    },
+    {
+      "date": "2026-02-05",
+      "credit_trillion": 30.3712,
+      "deposit_trillion": 104.8667,
+      "ratio": 28.9617
+    },
+    {
+      "date": "2026-02-06",
+      "credit_trillion": 30.6707,
+      "deposit_trillion": 109.0099,
+      "ratio": 28.1357
+    },
+    {
+      "date": "2026-02-09",
+      "credit_trillion": 31.1809,
+      "deposit_trillion": 98.5905,
+      "ratio": 31.6267
+    },
+    {
+      "date": "2026-02-10",
+      "credit_trillion": 31.1398,
+      "deposit_trillion": 95.2996,
+      "ratio": 32.6757
+    },
+    {
+      "date": "2026-02-11",
+      "credit_trillion": 30.8947,
+      "deposit_trillion": 98.1634,
+      "ratio": 31.4727
+    },
+    {
+      "date": "2026-02-12",
+      "credit_trillion": 31.0414,
+      "deposit_trillion": 103.0184,
+      "ratio": 30.1319
+    },
+    {
+      "date": "2026-02-13",
+      "credit_trillion": 31.0528,
+      "deposit_trillion": 99.2736,
+      "ratio": 31.28
+    },
+    {
+      "date": "2026-02-19",
+      "credit_trillion": 31.1635,
+      "deposit_trillion": 106.57,
+      "ratio": 29.2423
+    },
+    {
+      "date": "2026-02-20",
+      "credit_trillion": 31.2034,
+      "deposit_trillion": 104.1291,
+      "ratio": 29.9661
+    },
+    {
+      "date": "2026-02-23",
+      "credit_trillion": 31.2657,
+      "deposit_trillion": 108.2901,
+      "ratio": 28.8722
+    },
+    {
+      "date": "2026-02-24",
+      "credit_trillion": 31.506,
+      "deposit_trillion": 107.9032,
+      "ratio": 29.1984
+    },
+    {
+      "date": "2026-02-25",
+      "credit_trillion": 31.6661,
+      "deposit_trillion": 109.4677,
+      "ratio": 28.9273
+    },
+    {
+      "date": "2026-02-26",
+      "credit_trillion": 31.9031,
+      "deposit_trillion": 119.4832,
+      "ratio": 26.7009
+    },
+    {
+      "date": "2026-02-27",
+      "credit_trillion": 32.1881,
+      "deposit_trillion": 118.7488,
+      "ratio": 27.106
+    },
+    {
+      "date": "2026-03-03",
+      "credit_trillion": 32.3077,
+      "deposit_trillion": 129.8188,
+      "ratio": 24.8868
+    },
+    {
+      "date": "2026-03-04",
+      "credit_trillion": 32.6804,
+      "deposit_trillion": 132.0682,
+      "ratio": 24.7451
+    },
+    {
+      "date": "2026-03-05",
+      "credit_trillion": 33.166,
+      "deposit_trillion": 130.8873,
+      "ratio": 25.3394
+    },
+    {
+      "date": "2026-03-06",
+      "credit_trillion": 32.2894,
+      "deposit_trillion": 129.9574,
+      "ratio": 24.8461
+    },
+    {
+      "date": "2026-03-09",
+      "credit_trillion": 31.2138,
+      "deposit_trillion": 127.4218,
+      "ratio": 24.4964
+    },
+    {
+      "date": "2026-03-10",
+      "credit_trillion": 31.312,
+      "deposit_trillion": 125.5844,
+      "ratio": 24.933
+    },
+    {
+      "date": "2026-03-11",
+      "credit_trillion": 31.2708,
+      "deposit_trillion": 119.028,
+      "ratio": 26.2718
+    },
+    {
+      "date": "2026-03-12",
+      "credit_trillion": 31.656,
+      "deposit_trillion": 120.1462,
+      "ratio": 26.3479
+    },
+    {
+      "date": "2026-03-13",
+      "credit_trillion": 32.1986,
+      "deposit_trillion": 119.696,
+      "ratio": 26.9003
+    },
+    {
+      "date": "2026-03-16",
+      "credit_trillion": 32.7337,
+      "deposit_trillion": 117.8012,
+      "ratio": 27.7872
+    },
+    {
+      "date": "2026-03-17",
+      "credit_trillion": 32.848,
+      "deposit_trillion": 114.7783,
+      "ratio": 28.6187
+    },
+    {
+      "date": "2026-03-18",
+      "credit_trillion": 33.0142,
+      "deposit_trillion": 112.2807,
+      "ratio": 29.4033
+    },
+    {
+      "date": "2026-03-19",
+      "credit_trillion": 32.8374,
+      "deposit_trillion": 115.6443,
+      "ratio": 28.3952
+    },
+    {
+      "date": "2026-03-20",
+      "credit_trillion": 32.7852,
+      "deposit_trillion": 120.6968,
+      "ratio": 27.1633
+    },
+    {
+      "date": "2026-03-23",
+      "credit_trillion": 32.882,
+      "deposit_trillion": 121.8992,
+      "ratio": 26.9747
+    },
+    {
+      "date": "2026-03-24",
+      "credit_trillion": 32.9594,
+      "deposit_trillion": 119.7599,
+      "ratio": 27.5212
+    },
+    {
+      "date": "2026-03-25",
+      "credit_trillion": 32.5733,
+      "deposit_trillion": 108.8498,
+      "ratio": 29.925
+    },
+    {
+      "date": "2026-03-26",
+      "credit_trillion": 32.3054,
+      "deposit_trillion": 111.579,
+      "ratio": 28.9529
+    },
+    {
+      "date": "2026-03-27",
+      "credit_trillion": 32.3405,
+      "deposit_trillion": 112.8372,
+      "ratio": 28.6612
+    },
+    {
+      "date": "2026-03-30",
+      "credit_trillion": 32.1593,
+      "deposit_trillion": 111.0742,
+      "ratio": 28.953
+    },
+    {
+      "date": "2026-03-31",
+      "credit_trillion": 32.4787,
+      "deposit_trillion": 110.2889,
+      "ratio": 29.4487
+    },
+    {
+      "date": "2026-04-01",
+      "credit_trillion": 32.537,
+      "deposit_trillion": 111.6766,
+      "ratio": 29.135
+    },
+    {
+      "date": "2026-04-02",
+      "credit_trillion": 32.2911,
+      "deposit_trillion": 108.574,
+      "ratio": 29.7411
+    },
+    {
+      "date": "2026-04-03",
+      "credit_trillion": 32.0148,
+      "deposit_trillion": 109.0165,
+      "ratio": 29.3669
+    },
+    {
+      "date": "2026-04-06",
+      "credit_trillion": 32.4043,
+      "deposit_trillion": 107.4674,
+      "ratio": 30.1527
+    },
+    {
+      "date": "2026-04-07",
+      "credit_trillion": 32.2322,
+      "deposit_trillion": 108.9214,
+      "ratio": 29.5922
+    },
+    {
+      "date": "2026-04-08",
+      "credit_trillion": 32.3087,
+      "deposit_trillion": 109.8332,
+      "ratio": 29.4162
+    },
+    {
+      "date": "2026-04-09",
+      "credit_trillion": 32.2979,
+      "deposit_trillion": 112.807,
+      "ratio": 28.6311
+    },
+    {
+      "date": "2026-04-10",
+      "credit_trillion": 32.4809,
+      "deposit_trillion": 115.3642,
+      "ratio": 28.1551
+    },
+    {
+      "date": "2026-04-13",
+      "credit_trillion": 32.793,
+      "deposit_trillion": 116.1075,
+      "ratio": 28.2437
+    },
+    {
+      "date": "2026-04-14",
+      "credit_trillion": 32.8583,
+      "deposit_trillion": 117.6725,
+      "ratio": 27.9235
+    },
+    {
+      "date": "2026-04-15",
+      "credit_trillion": 32.9307,
+      "deposit_trillion": 117.1651,
+      "ratio": 28.1062
+    },
+    {
+      "date": "2026-04-16",
+      "credit_trillion": 33.45,
+      "deposit_trillion": 119.0743,
+      "ratio": 28.0917
+    },
+    {
+      "date": "2026-04-17",
+      "credit_trillion": 33.607,
+      "deposit_trillion": 120.5855,
+      "ratio": 27.8699
+    },
+    {
+      "date": "2026-04-20",
+      "credit_trillion": 33.8375,
+      "deposit_trillion": 121.8173,
+      "ratio": 27.7773
+    },
+    {
+      "date": "2026-04-21",
+      "credit_trillion": 34.274,
+      "deposit_trillion": 121.2861,
+      "ratio": 28.2588
+    },
+    {
+      "date": "2026-04-22",
+      "credit_trillion": 34.3874,
+      "deposit_trillion": 122.5381,
+      "ratio": 28.0626
+    },
+    {
+      "date": "2026-04-23",
+      "credit_trillion": 34.6493,
+      "deposit_trillion": 126.0351,
+      "ratio": 27.4918
+    },
+    {
+      "date": "2026-04-24",
+      "credit_trillion": 35.0317,
+      "deposit_trillion": 125.6869,
+      "ratio": 27.8722
+    },
+    {
+      "date": "2026-04-27",
+      "credit_trillion": 35.087,
+      "deposit_trillion": 125.9503,
+      "ratio": 27.8578
+    },
+    {
+      "date": "2026-04-28",
+      "credit_trillion": 35.2323,
+      "deposit_trillion": 127.4134,
+      "ratio": 27.652
+    },
+    {
+      "date": "2026-04-29",
+      "credit_trillion": 35.5943,
+      "deposit_trillion": 129.7321,
+      "ratio": 27.4368
+    },
+    {
+      "date": "2026-04-30",
+      "credit_trillion": 35.2383,
+      "deposit_trillion": 124.7591,
+      "ratio": 28.2451
+    },
+    {
+      "date": "2026-05-04",
+      "credit_trillion": 35.3578,
+      "deposit_trillion": 124.8406,
+      "ratio": 28.3224
+    },
+    {
+      "date": "2026-05-06",
+      "credit_trillion": 34.9635,
+      "deposit_trillion": 130.7434,
+      "ratio": 26.7421
+    },
+    {
+      "date": "2026-05-07",
+      "credit_trillion": 35.0271,
+      "deposit_trillion": 136.989,
+      "ratio": 25.5693
+    },
+    {
+      "date": "2026-05-08",
+      "credit_trillion": 35.434,
+      "deposit_trillion": 135.2991,
+      "ratio": 26.1894
+    },
+    {
+      "date": "2026-05-11",
+      "credit_trillion": 35.4644,
+      "deposit_trillion": 134.0987,
+      "ratio": 26.4465
+    },
+    {
+      "date": "2026-05-12",
+      "credit_trillion": 35.7127,
+      "deposit_trillion": 137.4174,
+      "ratio": 25.9885
+    },
+    {
+      "date": "2026-05-13",
+      "credit_trillion": 35.5024,
+      "deposit_trillion": 137.1201,
+      "ratio": 25.8915
+    },
+    {
+      "date": "2026-05-14",
+      "credit_trillion": 35.897,
+      "deposit_trillion": 133.5088,
+      "ratio": 26.8874
+    },
+    {
+      "date": "2026-05-15",
+      "credit_trillion": 35.9886,
+      "deposit_trillion": 132.8597,
+      "ratio": 27.0877
+    },
+    {
+      "date": "2026-05-18",
+      "credit_trillion": 35.8122,
+      "deposit_trillion": 132.9853,
+      "ratio": 26.9294
+    },
+    {
+      "date": "2026-05-19",
+      "credit_trillion": 35.2868,
+      "deposit_trillion": 126.9599,
+      "ratio": 27.7937
+    },
+    {
+      "date": "2026-05-20",
+      "credit_trillion": 35.6542,
+      "deposit_trillion": 125.644,
+      "ratio": 28.3772
+    },
+    {
+      "date": "2026-05-21",
+      "credit_trillion": 35.896,
+      "deposit_trillion": 122.3819,
+      "ratio": 29.3311
+    },
+    {
+      "date": "2026-05-22",
+      "credit_trillion": 35.7919,
+      "deposit_trillion": 121.2452,
+      "ratio": 29.5203
+    },
+    {
+      "date": "2026-05-26",
+      "credit_trillion": 35.687,
+      "deposit_trillion": 124.5769,
+      "ratio": 28.6466
+    },
+    {
+      "date": "2026-05-27",
+      "credit_trillion": 36.1111,
+      "deposit_trillion": 128.575,
+      "ratio": 28.0856
+    },
+    {
+      "date": "2026-05-28",
+      "credit_trillion": 36.4593,
+      "deposit_trillion": 131.1318,
+      "ratio": 27.8036
+    },
+    {
+      "date": "2026-05-29",
+      "credit_trillion": 37.4188,
+      "deposit_trillion": 131.5856,
+      "ratio": 28.4369
+    },
+    {
+      "date": "2026-06-01",
+      "credit_trillion": 37.0937,
+      "deposit_trillion": 132.5992,
+      "ratio": 27.9743
+    },
+    {
+      "date": "2026-06-02",
+      "credit_trillion": 37.1092,
+      "deposit_trillion": 136.8111,
+      "ratio": 27.1244
+    },
+    {
+      "date": "2026-06-04",
+      "credit_trillion": 37.1166,
+      "deposit_trillion": 139.6948,
+      "ratio": 26.5698
+    },
+    {
+      "date": "2026-06-05",
+      "credit_trillion": 37.2282,
+      "deposit_trillion": 134.2344,
+      "ratio": 27.7337
+    },
+    {
+      "date": "2026-06-08",
+      "credit_trillion": 37.1752,
+      "deposit_trillion": 136.3847,
+      "ratio": 27.2576
+    },
+    {
+      "date": "2026-06-09",
+      "credit_trillion": 37.3296,
+      "deposit_trillion": 130.1189,
+      "ratio": 28.6888
+    },
+    {
+      "date": "2026-06-10",
+      "credit_trillion": 36.1901,
+      "deposit_trillion": 127.6066,
+      "ratio": 28.3607
+    },
+    {
+      "date": "2026-06-11",
+      "credit_trillion": 36.0752,
+      "deposit_trillion": 127.3718,
+      "ratio": 28.3228
+    },
+    {
+      "date": "2026-06-12",
+      "credit_trillion": 36.3029,
+      "deposit_trillion": 121.0566,
+      "ratio": 29.9884
+    },
+    {
+      "date": "2026-06-15",
+      "credit_trillion": 36.4871,
+      "deposit_trillion": 120.5817,
+      "ratio": 30.2592
+    },
+    {
+      "date": "2026-06-16",
+      "credit_trillion": 36.7993,
+      "deposit_trillion": 124.5516,
+      "ratio": 29.5454
+    },
+    {
+      "date": "2026-06-17",
+      "credit_trillion": 37.1989,
+      "deposit_trillion": 124.632,
+      "ratio": 29.847
+    },
+    {
+      "date": "2026-06-18",
+      "credit_trillion": 37.3776,
+      "deposit_trillion": 128.4086,
+      "ratio": 29.1083
+    },
+    {
+      "date": "2026-06-19",
+      "credit_trillion": 37.8694,
+      "deposit_trillion": 129.3535,
+      "ratio": 29.2759
+    },
+    {
+      "date": "2026-06-22",
+      "credit_trillion": 37.9189,
+      "deposit_trillion": 132.1857,
+      "ratio": 28.6861
+    },
+    {
+      "date": "2026-06-23",
+      "credit_trillion": 37.486,
+      "deposit_trillion": 136.8314,
+      "ratio": 27.3958
+    },
+    {
+      "date": "2026-06-24",
+      "credit_trillion": 38.0158,
+      "deposit_trillion": 136.5527,
+      "ratio": 27.8397
+    },
+    {
+      "date": "2026-06-25",
+      "credit_trillion": 37.4533,
+      "deposit_trillion": 126.9924,
+      "ratio": 29.4926
+    },
+    {
+      "date": "2026-06-26",
+      "credit_trillion": 37.1754,
+      "deposit_trillion": 126.6049,
+      "ratio": 29.3633
+    },
+    {
+      "date": "2026-06-29",
+      "credit_trillion": 37.2105,
+      "deposit_trillion": 132.4697,
+      "ratio": 28.0898
+    },
+    {
+      "date": "2026-06-30",
+      "credit_trillion": 36.7352,
+      "deposit_trillion": 121.634,
+      "ratio": 30.2014
+    },
+    {
+      "date": "2026-07-01",
+      "credit_trillion": 36.7436,
+      "deposit_trillion": 120.0837,
+      "ratio": 30.5983
+    },
+    {
+      "date": "2026-07-02",
+      "credit_trillion": 37.1073,
+      "deposit_trillion": 119.9264,
+      "ratio": 30.9417
+    },
+    {
+      "date": "2026-07-03",
+      "credit_trillion": 37.177,
+      "deposit_trillion": 118.2594,
+      "ratio": 31.4368
+    },
+    {
+      "date": "2026-07-06",
+      "credit_trillion": 37.0582,
+      "deposit_trillion": 112.2082,
+      "ratio": 33.0263
+    },
+    {
+      "date": "2026-07-07",
+      "credit_trillion": 36.4704,
+      "deposit_trillion": 112.326,
+      "ratio": 32.4684
+    },
+    {
+      "date": "2026-07-08",
+      "credit_trillion": 0.0,
+      "deposit_trillion": 0.0,
+      "ratio": 110.5263
+    },
+    {
+      "date": "2026-07-10",
+      "credit_trillion": 0.0,
+      "deposit_trillion": 0.0,
+      "ratio": 4.829
+    }
+  ]
 }
