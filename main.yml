@@ -3,8 +3,7 @@ name: 신용잔고 데이터 자동 갱신
 on:
   workflow_dispatch:
   schedule:
-    # GitHub Actions cron은 UTC 기준
-    # 평일 한국시간 09:17, 15:17, 21:17 실행
+    # UTC 기준: 평일 한국시간 09:17, 15:17, 21:17
     - cron: "17 0,6,12 * * 1-5"
 
 permissions:
@@ -51,11 +50,10 @@ jobs:
 
           path = Path("data.json")
           assert path.exists(), "data.json 파일이 생성되지 않았습니다."
-
           data = json.loads(path.read_text(encoding="utf-8"))
-          rows = data.get("series", [])
-          assert len(rows) >= 2, "시계열 행이 2개 미만입니다."
 
+          rows = data.get("series", [])
+          assert isinstance(rows, list) and len(rows) >= 1, "저장된 데이터가 없습니다."
           latest = rows[-1]
           credit = float(latest["credit_trillion"])
           deposit = float(latest["deposit_trillion"])
@@ -66,7 +64,15 @@ jobs:
           assert abs(calculated - ratio) < 0.03, (
               f"비율 불일치: 저장값={ratio}, 재계산={calculated}"
           )
+
+          verified = data.get("verified_against", {})
+          if verified.get("date"):
+              assert latest["date"] == verified["date"], (
+                  f"최신 날짜 불일치: 저장={latest['date']}, 화면={verified['date']}"
+              )
+
           print("검증 완료:", latest)
+          print("수집 모드:", data.get("collection_mode"))
           PY
 
       - name: 변경된 데이터 커밋
@@ -78,12 +84,12 @@ jobs:
           if git diff --cached --quiet; then
             echo "변경된 데이터가 없습니다."
           else
-            git commit -m "chore: update verified credit balance data"
+            git commit -m "chore: update credit balance data"
             git push origin HEAD:main
           fi
 
       - name: 진단 파일 업로드
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: credit-balance-debug

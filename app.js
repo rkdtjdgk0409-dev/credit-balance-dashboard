@@ -150,7 +150,7 @@ function commonOptions(view) {
     },
     elements: {
       line: { tension: 0.22, borderWidth: 2.35 },
-      point: { radius: 0, hoverRadius: 4, hitRadius: 12 },
+      point: { radius: rowsToDraw().length === 1 ? 4 : 0, hoverRadius: 4, hitRadius: 12 },
     },
   };
 
@@ -255,7 +255,7 @@ function renderChart() {
 
   const canvas = $("trendChart");
   const empty = $("emptyState");
-  if (rows.length < 2 || typeof Chart === "undefined") {
+  if (rows.length < 1 || typeof Chart === "undefined") {
     canvas.classList.add("hidden");
     empty.classList.remove("hidden");
     if (typeof Chart === "undefined") {
@@ -268,9 +268,13 @@ function renderChart() {
   canvas.classList.remove("hidden");
   empty.classList.add("hidden");
   chart = new Chart(canvas, chartConfig(currentView));
-  $("chartCaption").textContent = currentView === "ratio"
-    ? "신용융자 잔고 ÷ 고객예탁금 × 100으로 다시 계산한 비율입니다."
-    : "두 지표의 추세를 함께 보기 위해 좌·우 축을 각각 사용합니다. 높이보다 방향과 변화 속도를 비교하세요.";
+  if (rows.length === 1) {
+    $("chartCaption").textContent = "첫 자동 수집값입니다. 다음 영업일 데이터부터 날짜별 추세선이 이어집니다.";
+  } else {
+    $("chartCaption").textContent = currentView === "ratio"
+      ? "신용융자 잔고 ÷ 고객예탁금 × 100으로 다시 계산한 비율입니다."
+      : "두 지표의 추세를 함께 보기 위해 좌·우 축을 각각 사용합니다. 높이보다 방향과 변화 속도를 비교하세요.";
+  }
 }
 
 function setTab(view) {
