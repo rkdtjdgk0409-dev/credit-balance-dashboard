@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>신용잔고·고객예탁금 대시보드</title>
+  <meta name="description" content="예탁금 대비 신용 비율과 신용융자 잔고·고객예탁금 추세" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero panel" aria-labelledby="heroTitle">
+      <div>
+        <p class="eyebrow">KOREA MARKET LEVERAGE</p>
+        <h1 id="heroTitle">예탁금 대비 신용 비율</h1>
+        <div class="hero-value-row">
+          <strong id="heroRatio" class="hero-value">—%</strong>
+          <span id="ratioChange" class="change-pill neutral">데이터 대기</span>
+        </div>
+        <p id="asOfText" class="as-of">최신 데이터 확인 중</p>
+      </div>
+      <div class="hero-mark" aria-hidden="true">
+        <span>신용</span>
+        <b>÷</b>
+        <span>예탁금</span>
+      </div>
+    </section>
+
+    <section class="panel chart-panel" aria-labelledby="chartHeading">
+      <div class="chart-head">
+        <div>
+          <p class="eyebrow">TREND</p>
+          <h2 id="chartHeading">예탁금·신용 추세</h2>
+        </div>
+        <div class="latest-values" aria-label="최신 수치">
+          <div class="latest-card">
+            <span>신용융자 잔고</span>
+            <strong id="latestCredit">—</strong>
+          </div>
+          <div class="latest-card">
+            <span>고객예탁금</span>
+            <strong id="latestDeposit">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="차트 선택">
+        <button id="ratioTab" class="tab active" type="button" role="tab" aria-selected="true" data-view="ratio">신용비율</button>
+        <button id="compareTab" class="tab" type="button" role="tab" aria-selected="false" data-view="compare">신용 VS 예탁금</button>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="trendChart" aria-label="신용비율과 신용융자 잔고 및 고객예탁금 추세 차트"></canvas>
+        <div id="emptyState" class="empty-state hidden">
+          <strong>아직 수집된 데이터가 없습니다.</strong>
+          <span>GitHub Actions에서 ‘신용잔고 데이터 자동 갱신’을 한 번 실행해 주세요.</span>
+        </div>
+      </div>
+      <p id="chartCaption" class="chart-caption">신용융자 잔고를 고객예탁금으로 나눈 비율입니다.</p>
+    </section>
+
+    <section class="panel guide" aria-labelledby="guideTitle">
+      <div>
+        <p class="eyebrow">HOW TO READ</p>
+        <h2 id="guideTitle">지표 읽는 법</h2>
+      </div>
+      <div class="guide-grid">
+        <article>
+          <span class="guide-num">01</span>
+          <h3>신용비율 상승</h3>
+          <p>예탁금에 비해 빚을 활용한 주식 매수가 빠르게 늘고 있다는 뜻입니다. 상승세가 가팔라질수록 변동성 확대 가능성을 함께 확인하세요.</p>
+        </article>
+        <article>
+          <span class="guide-num">02</span>
+          <h3>신용↑ · 예탁금↓</h3>
+          <p>시장 대기자금은 줄고 레버리지는 늘어나는 조합입니다. 지수 급락 시 반대매매와 매도 압력이 커질 수 있습니다.</p>
+        </article>
+        <article>
+          <span class="guide-num">03</span>
+          <h3>추세로 판단</h3>
+          <p>하루 수치보다 수주간 방향과 변화 속도가 중요합니다. 이 지표 하나만으로 매수·매도를 결정하지 말고 거래대금과 시장 추세를 함께 보세요.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      <span id="updatedAt">업데이트 정보 없음</span>
+      <a href="https://www.hangon.co.kr/credit-balance" target="_blank" rel="noopener noreferrer">데이터 출처: Hang on!</a>
+    </footer>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
