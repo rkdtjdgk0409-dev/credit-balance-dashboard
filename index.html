@@ -7,7 +7,7 @@
   <title>신용잔고·고객예탁금 대시보드</title>
   <meta name="description" content="예탁금 대비 신용 비율과 신용융자 잔고·고객예탁금 추세" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="stylesheet" href="style.css?v=3.0.0" />
+  <link rel="stylesheet" href="style.css?v=7.0.0" />
 </head>
 <body>
   <main class="shell">
@@ -34,7 +34,7 @@
       <div class="chart-head">
         <div>
           <p class="eyebrow">TREND</p>
-          <h2 id="chartHeading">예탁금·신용 추세</h2>
+          <h2 id="chartHeading">예탁금·신용 추세 <small>최근 6개월</small></h2>
         </div>
         <div class="latest-values" aria-label="최신 수치">
           <div class="latest-card credit-card">
@@ -90,11 +90,11 @@
 
     <footer>
       <span id="updatedAt">업데이트 정보 없음</span>
-      <a href="https://www.hangon.co.kr/credit-balance" target="_blank" rel="noopener noreferrer">데이터 출처: Hang on!</a>
+      <a href="https://www.hangon.co.kr/credit-balance" target="_blank" rel="noopener noreferrer">최신값: Hang on! · 과거 시계열: 금융투자협회 계열</a>
     </footer>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
-  <script src="app.js?v=4.0.0" defer></script>
+  <script src="app.js?v=7.0.0" defer></script>
 </body>
 </html>

@@ -17,12 +17,17 @@ import os
 import re
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from calendar import monthrange
 from pathlib import Path
 from typing import Any, Iterable
+
+import requests
+from bs4 import BeautifulSoup
 
 from playwright.async_api import Response, async_playwright
 
 SOURCE_URL = "https://www.hangon.co.kr/credit-balance"
+NAVER_HISTORY_URL = "https://finance.naver.com/sise/sise_deposit.naver?page={page}"
 ROOT = Path(os.environ.get("GITHUB_WORKSPACE", Path(__file__).resolve().parent)).resolve()
 OUTPUT = ROOT / "data.json"
 DEBUG = ROOT / "debug_capture.json"
@@ -514,6 +519,144 @@ def load_existing_series() -> list[dict[str, float | str]]:
     return [by_date[key] for key in sorted(by_date)][-520:]
 
 
+
+def subtract_months(day: date, months: int) -> date:
+    """월말 날짜도 안전하게 N개월 전 날짜로 이동한다."""
+    absolute = day.year * 12 + (day.month - 1) - months
+    year, month_zero = divmod(absolute, 12)
+    month = month_zero + 1
+    return date(year, month, min(day.day, monthrange(year, month)[1]))
+
+
+def trim_to_six_months(series: list[dict[str, float | str]]) -> list[dict[str, float | str]]:
+    """최신 관측일을 기준으로 최근 6개월만 남긴다."""
+    if not series:
+        return []
+    ordered = sorted(series, key=lambda row: str(row["date"]))
+    latest_day = date.fromisoformat(str(ordered[-1]["date"]))
+    cutoff = subtract_months(latest_day, 6)
+    return [row for row in ordered if date.fromisoformat(str(row["date"])) >= cutoff]
+
+
+def _table_header_indexes(table: Any) -> tuple[int, int] | None:
+    # 전체 table의 th를 합치면 제목용 colspan 때문에 인덱스가 밀릴 수 있으므로,
+    # 고객예탁금과 신용융자가 함께 있는 실제 헤더 행만 사용한다.
+    for tr in table.find_all("tr"):
+        headers = [re.sub(r"\s+", "", cell.get_text(" ", strip=True)) for cell in tr.find_all("th")]
+        if not headers:
+            continue
+        deposit_index = next(
+            (index for index, header in enumerate(headers) if "고객예탁금" in header or "투자자예탁금" in header),
+            None,
+        )
+        credit_index = next(
+            (index for index, header in enumerate(headers) if "신용융자" in header or "융자잔고" in header),
+            None,
+        )
+        if deposit_index is not None and credit_index is not None:
+            return deposit_index, credit_index
+    return None
+
+
+def parse_naver_day(value: str, latest_day: date) -> str | None:
+    parsed = parse_date(value)
+    if parsed:
+        return parsed
+    # 표가 연도를 생략해 MM.DD만 보여주는 경우 최신 기준일에서 연도를 추론한다.
+    match = re.search(r"(?<!\d)(\d{1,2})[./-](\d{1,2})(?!\d)", value)
+    if not match:
+        return None
+    month, day_value = map(int, match.groups())
+    try:
+        candidate = date(latest_day.year, month, day_value)
+    except ValueError:
+        return None
+    if candidate > latest_day:
+        try:
+            candidate = date(latest_day.year - 1, month, day_value)
+        except ValueError:
+            return None
+    return candidate.isoformat()
+
+
+def fetch_naver_history(snapshot: Snapshot) -> tuple[list[dict[str, float | str]], str | None]:
+    """네이버 금융의 금융투자협회 증시자금 표에서 과거 데이터를 보조 수집한다.
+
+    Hang on의 최신 화면값을 단위 검증 기준으로 사용하고, 최종 최신 행은 반드시
+    Hang on 화면값으로 교체한다. 이 함수는 Hang on의 동적 차트 payload를 찾지
+    못했을 때만 6개월 과거 구간을 채우는 보조 경로다.
+    """
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+        ),
+        "Referer": "https://finance.naver.com/",
+        "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.6",
+    })
+
+    latest_reference = date.fromisoformat(snapshot.date) if snapshot.date else date.today()
+    cutoff = subtract_months(latest_reference, 6)
+
+    raw_rows: dict[str, tuple[str, float, float]] = {}
+    errors: list[str] = []
+
+    for page_number in range(1, 41):
+        try:
+            response = session.get(NAVER_HISTORY_URL.format(page=page_number), timeout=25)
+            response.raise_for_status()
+            response.encoding = response.apparent_encoding or "euc-kr"
+            soup = BeautifulSoup(response.text, "html.parser")
+            tables = [
+                table for table in soup.find_all("table")
+                if ("고객예탁금" in table.get_text(" ", strip=True)
+                    and ("신용융자" in table.get_text(" ", strip=True)
+                         or "융자잔고" in table.get_text(" ", strip=True)))
+            ]
+            if not tables:
+                errors.append(f"page {page_number}: 대상 표 없음")
+                break
+
+            table = tables[0]
+            indexes = _table_header_indexes(table)
+            # 네이버 표의 일반적인 열 순서는 날짜, 고객예탁금, 증감, 신용융자, 증감이다.
+            deposit_index, credit_index = indexes or (1, 3)
+            found_on_page = 0
+            oldest_on_page: date | None = None
+
+            for tr in table.find_all("tr"):
+                cells = [cell.get_text(" ", strip=True) for cell in tr.find_all("td")]
+                if not cells:
+                    continue
+                day = parse_naver_day(cells[0], latest_reference)
+                if not day:
+                    continue
+                if max(deposit_index, credit_index) >= len(cells):
+                    continue
+                deposit = parse_number(cells[deposit_index])
+                credit = parse_number(cells[credit_index])
+                if deposit is None or credit is None or deposit <= 0 or credit <= 0:
+                    continue
+                raw_rows[day] = (day, credit, deposit)
+                found_on_page += 1
+                parsed_day = date.fromisoformat(day)
+                oldest_on_page = parsed_day if oldest_on_page is None else min(oldest_on_page, parsed_day)
+
+            if found_on_page == 0:
+                errors.append(f"page {page_number}: 유효 행 없음")
+                break
+            if oldest_on_page and oldest_on_page < cutoff:
+                break
+        except Exception as exc:
+            errors.append(f"page {page_number}: {exc}")
+            break
+
+    normalized = normalize_rows(list(raw_rows.values()), snapshot)
+    normalized = trim_to_six_months(normalized)
+    error_text = " / ".join(errors) if errors else None
+    return normalized, error_text
+
 def append_snapshot(existing: list[dict[str, float | str]], snapshot: Snapshot) -> list[dict[str, float | str]]:
     by_date = {str(row["date"]): row for row in existing}
     latest = snapshot_row(snapshot)
@@ -651,31 +794,62 @@ async def main() -> None:
     candidates.sort(key=lambda item: item[0], reverse=True)
     collection_mode = "snapshot_append"
     selected_path = None
-    fallback_reason = "전체 시계열 후보를 찾지 못함"
+    fallback_reason = "Hang on 전체 시계열 후보를 찾지 못함"
+    naver_error = None
+    series: list[dict[str, float | str]] = []
 
     if candidates:
         _, selected_path, selected_series = candidates[0]
         try:
             validate_candidate(selected_series, snapshot)
-            series = selected_series[-520:]
-            collection_mode = "full_series"
-            fallback_reason = None
+            series = trim_to_six_months(selected_series)
+            if len(series) >= 20:
+                collection_mode = "hangon_full_series_6m"
+                fallback_reason = None
+            else:
+                fallback_reason = f"Hang on 후보 행이 너무 적음: {len(series)}행"
+                series = []
         except Exception as exc:
             fallback_reason = str(exc)
-            series = append_snapshot(load_existing_series(), snapshot)
-    else:
-        series = append_snapshot(load_existing_series(), snapshot)
 
+    # Hang on의 동적 chart payload가 노출되지 않는 경우, 같은 금융투자협회 계열
+    # 증시자금 표에서 6개월 과거 구간을 채운 뒤 Hang on 최신 화면값으로 검증한다.
+    if len(series) < 20:
+        naver_series, naver_error = fetch_naver_history(snapshot)
+        if len(naver_series) >= 20:
+            series = naver_series
+            collection_mode = "naver_kofia_history_plus_hangon_latest"
+            fallback_reason = None
+
+    if len(series) < 1:
+        series = load_existing_series()
+        collection_mode = "snapshot_append"
+        if naver_error:
+            fallback_reason = f"{fallback_reason} / 보조 시계열 실패: {naver_error}"
+
+    # 최신값은 Hang on 화면에서 읽은 검증값으로 항상 덮어쓴다.
+    series = append_snapshot(series, snapshot)
+    series = trim_to_six_months(series)
     latest = series[-1]
     output = {
         "source": SOURCE_URL,
+        "history_source": (
+            SOURCE_URL
+            if collection_mode == "hangon_full_series_6m"
+            else "https://finance.naver.com/sise/sise_deposit.naver"
+        ),
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "unit": "trillion_krw",
+        "range": "latest_6_calendar_months",
         "collection_mode": collection_mode,
         "message": (
-            "Hang on 전체 시계열을 추출했습니다."
-            if collection_mode == "full_series"
-            else "Hang on 화면에 표시된 최신 검증값을 날짜별로 누적했습니다."
+            "Hang on에서 최근 6개월 전체 시계열을 추출했습니다."
+            if collection_mode == "hangon_full_series_6m"
+            else (
+                "금융투자협회 계열 과거 표와 Hang on 최신 화면값을 결합해 최근 6개월을 구성했습니다."
+                if collection_mode == "naver_kofia_history_plus_hangon_latest"
+                else "Hang on 최신 검증값을 날짜별로 누적했습니다."
+            )
         ),
         "fallback_reason": fallback_reason,
         "verified_against": snapshot.as_dict(),
@@ -691,6 +865,7 @@ async def main() -> None:
         "collection_mode": collection_mode,
         "selected_path": selected_path,
         "fallback_reason": fallback_reason,
+        "naver_history_error": naver_error,
         "candidate_count": len(candidates),
         "top_candidates": [
             {

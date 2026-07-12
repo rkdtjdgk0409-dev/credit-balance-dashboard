@@ -53,7 +53,7 @@ jobs:
           data = json.loads(path.read_text(encoding="utf-8"))
 
           rows = data.get("series", [])
-          assert isinstance(rows, list) and len(rows) >= 1, "저장된 데이터가 없습니다."
+          assert isinstance(rows, list) and len(rows) >= 20, f"6개월 시계열이 부족합니다: {len(rows)}행"
           latest = rows[-1]
           credit = float(latest["credit_trillion"])
           deposit = float(latest["deposit_trillion"])
@@ -73,6 +73,7 @@ jobs:
 
           print("검증 완료:", latest)
           print("수집 모드:", data.get("collection_mode"))
+          print("6개월 행 수:", len(rows))
           PY
 
       - name: 변경된 데이터 커밋

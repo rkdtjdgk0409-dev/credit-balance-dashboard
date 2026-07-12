@@ -31,6 +31,20 @@ function normalizeRows(source) {
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+function sixMonthRows(source) {
+  if (!Array.isArray(source) || source.length === 0) return [];
+  const latest = new Date(`${source.at(-1).date}T00:00:00+09:00`);
+  if (Number.isNaN(latest.getTime())) return source;
+  const cutoff = new Date(latest.getTime());
+  const targetMonth = cutoff.getMonth() - 6;
+  cutoff.setDate(1);
+  cutoff.setMonth(targetMonth);
+  const latestDay = latest.getDate();
+  const lastDay = new Date(cutoff.getFullYear(), cutoff.getMonth() + 1, 0).getDate();
+  cutoff.setDate(Math.min(latestDay, lastDay));
+  return source.filter((row) => new Date(`${row.date}T00:00:00+09:00`) >= cutoff);
+}
+
 function normalizeLatest(source) {
   if (!source) return null;
   const credit = finitePositive(source.credit_trillion);
@@ -112,7 +126,6 @@ function commonOptions(view) {
     maintainAspectRatio: false,
     interaction: { mode: "index", intersect: false },
     animation: { duration: 350 },
-    parsing: false,
     plugins: {
       legend: {
         display: view === "compare",
@@ -199,7 +212,7 @@ function commonOptions(view) {
 }
 
 function rowsToDraw() {
-  return rows.slice(-260);
+  return sixMonthRows(rows);
 }
 
 function chartConfig(view) {
@@ -272,8 +285,8 @@ function renderChart() {
     $("chartCaption").textContent = "첫 자동 수집값입니다. 다음 영업일 데이터부터 날짜별 추세선이 이어집니다.";
   } else {
     $("chartCaption").textContent = currentView === "ratio"
-      ? "신용융자 잔고 ÷ 고객예탁금 × 100으로 다시 계산한 비율입니다."
-      : "두 지표의 추세를 함께 보기 위해 좌·우 축을 각각 사용합니다. 높이보다 방향과 변화 속도를 비교하세요.";
+      ? "최근 6개월 · 신용융자 잔고 ÷ 고객예탁금 × 100으로 다시 계산한 비율입니다."
+      : "최근 6개월 · 두 지표는 좌·우 축을 각각 사용합니다. 높이보다 방향과 변화 속도를 비교하세요.";
   }
 }
 
@@ -327,6 +340,7 @@ async function init() {
       }
       rows.sort((a, b) => a.date.localeCompare(b.date));
     }
+    rows = sixMonthRows(rows);
 
     const latest = rows.at(-1) || latestFromFile;
 

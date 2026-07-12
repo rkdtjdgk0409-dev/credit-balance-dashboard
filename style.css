@@ -216,3 +216,15 @@ footer a:hover { color: var(--text); }
   .chart-wrap { height: 310px; }
   footer { flex-direction: column; }
 }
+
+#chartHeading small {
+  display: inline-block;
+  margin-left: .55rem;
+  padding: .2rem .5rem;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
