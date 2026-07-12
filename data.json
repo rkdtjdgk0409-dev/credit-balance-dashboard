@@ -1,8 +1,18 @@
 {
   "source": "https://www.hangon.co.kr/credit-balance",
-  "updated_at": null,
-  "message": "2026년 7월 8일 확인값을 첫 시계열로 표시합니다. 자동 갱신 때마다 날짜별 값이 누적됩니다.",
+  "history_source": "https://finance.naver.com/sise/sise_deposit.naver",
+  "updated_at": "2026-07-12T11:00:23.625600+00:00",
   "unit": "trillion_krw",
+  "range": "latest_6_calendar_months",
+  "collection_mode": "snapshot_append",
+  "message": "Hang on 최신 검증값을 날짜별로 누적했습니다.",
+  "fallback_reason": "Hang on 전체 시계열 후보를 찾지 못함 / 보조 시계열 실패: page 1: 대상 표 없음",
+  "verified_against": {
+    "date": "2026-07-08",
+    "ratio": 33.0027,
+    "credit_trillion": 36.6,
+    "deposit_trillion": 110.9
+  },
   "latest": {
     "date": "2026-07-08",
     "credit_trillion": 36.6,
@@ -16,6 +26,5 @@
       "deposit_trillion": 110.9,
       "ratio": 33.0027
     }
-  ],
-  "collection_mode": "seed_snapshot"
+  ]
 }
