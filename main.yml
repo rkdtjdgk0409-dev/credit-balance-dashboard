@@ -3,7 +3,7 @@ name: 신용잔고 데이터 자동 갱신
 on:
   workflow_dispatch:
   schedule:
-    # GitHub Actions cron은 UTC 기준입니다.
+    # GitHub Actions cron은 UTC 기준
     # 평일 한국시간 09:17, 15:17, 21:17 실행
     - cron: "17 0,6,12 * * 1-5"
 
@@ -35,7 +35,12 @@ jobs:
           pip install -r requirements.txt
           python -m playwright install --with-deps chromium
 
-      - name: Hang on 데이터 수집 및 표시값 검증
+      - name: 수집기 문법 검사
+        run: python -m py_compile update_data.py
+
+      - name: Hang on 데이터 수집
+        env:
+          PYTHONUNBUFFERED: "1"
         run: python update_data.py
 
       - name: data.json 검증
@@ -44,15 +49,23 @@ jobs:
           import json
           from pathlib import Path
 
-          data = json.loads(Path("data.json").read_text(encoding="utf-8"))
+          path = Path("data.json")
+          assert path.exists(), "data.json 파일이 생성되지 않았습니다."
+
+          data = json.loads(path.read_text(encoding="utf-8"))
           rows = data.get("series", [])
           assert len(rows) >= 2, "시계열 행이 2개 미만입니다."
+
           latest = rows[-1]
           credit = float(latest["credit_trillion"])
           deposit = float(latest["deposit_trillion"])
-          ratio = credit / deposit * 100
+          ratio = float(latest["ratio"])
+          calculated = credit / deposit * 100
+
           assert credit > 0 and deposit > 0
-          assert abs(ratio - float(latest["ratio"])) < 0.03
+          assert abs(calculated - ratio) < 0.03, (
+              f"비율 불일치: 저장값={ratio}, 재계산={calculated}"
+          )
           print("검증 완료:", latest)
           PY
 
@@ -61,6 +74,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data.json
+
           if git diff --cached --quiet; then
             echo "변경된 데이터가 없습니다."
           else
@@ -69,7 +83,7 @@ jobs:
           fi
 
       - name: 진단 파일 업로드
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: credit-balance-debug

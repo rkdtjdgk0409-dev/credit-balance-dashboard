@@ -15,12 +15,21 @@ import re
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
+import os
 from typing import Any, Iterable
 
 from playwright.async_api import Response, async_playwright
 
 SOURCE_URL = "https://www.hangon.co.kr/credit-balance"
-ROOT = Path(__file__).resolve().parent
+SCRIPT_DIR = Path(__file__).resolve().parent
+# GitHub Actions에서는 항상 저장소 최상위에 data.json/debug_capture.json을 씁니다.
+# 로컬 실행이나 예전 workflow가 scripts/로 복사해 실행하는 경우도 안전하게 처리합니다.
+if workspace := os.environ.get("GITHUB_WORKSPACE"):
+    ROOT = Path(workspace).resolve()
+elif SCRIPT_DIR.name == "scripts":
+    ROOT = SCRIPT_DIR.parent
+else:
+    ROOT = SCRIPT_DIR
 OUTPUT = ROOT / "data.json"
 DEBUG = ROOT / "debug_capture.json"
 
@@ -605,7 +614,7 @@ async def main() -> None:
             """() => Array.from(document.querySelectorAll('meta'))
               .map(meta => meta.content || '')
               .filter(Boolean)
-              .join('\n')"""
+              .join(String.fromCharCode(10))"""
         )
         inline_scripts = await page.evaluate(
             """() => Array.from(document.scripts)
