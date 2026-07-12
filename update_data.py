@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Hang on! 신용잔고 페이지의 실제 네트워크 응답에서 날짜/신용/예탁금 시계열을 추출한다."""
+"""Hang on! 신용잔고 페이지에서 검증된 신용융자·고객예탁금 시계열을 수집한다.
+
+핵심 원칙
+1. 페이지에 실제로 표시된 최신 날짜/비율/금액을 먼저 읽는다.
+2. 네트워크 응답의 여러 후보 시계열 중 표시값과 일치하는 후보만 선택한다.
+3. 최신 표시값과 맞지 않으면 잘못된 데이터를 게시하지 않고 실패 처리한다.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -7,28 +13,33 @@ import json
 import math
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
 from playwright.async_api import Response, async_playwright
 
 SOURCE_URL = "https://www.hangon.co.kr/credit-balance"
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 OUTPUT = ROOT / "data.json"
 DEBUG = ROOT / "debug_capture.json"
 
 DATE_KEYS = (
     "date", "day", "dt", "base_date", "baseDate", "basDt", "trdDd", "tradeDate",
-    "일자", "날짜", "기준일", "기준일자",
+    "trade_date", "bizDate", "businessDate", "stck_bsop_date", "일자", "날짜", "기준일", "기준일자",
 )
 CREDIT_PATTERNS = (
-    "credit", "loan", "margin", "융자", "신용잔고", "신용융자", "creditbalance",
+    "credit", "creditbalance", "creditloan", "credit_loan", "creditamount", "crdt", "crd",
+    "loanbalance", "marginloan", "융자", "융자잔고", "신용잔고", "신용융자", "신용거래융자",
 )
 DEPOSIT_PATTERNS = (
-    "deposit", "customer", "예탁", "고객예탁금", "investordeposit", "customerdeposit",
+    "deposit", "customerdeposit", "investordeposit", "customer_deposit", "investor_deposit",
+    "custdps", "dps", "예탁", "예탁금", "고객예탁금", "투자자예탁금", "예수금",
 )
-IGNORE_PATTERNS = ("ratio", "rate", "percent", "비율", "증감", "change")
+IGNORE_PATTERNS = (
+    "ratio", "rate", "percent", "percentage", "비율", "증감", "change", "changeamount", "change_rate",
+)
+SCALES_TO_TRILLION = tuple(10.0 ** (-power) for power in range(0, 13))
 
 
 def norm_key(value: Any) -> str:
@@ -36,35 +47,36 @@ def norm_key(value: Any) -> str:
 
 
 def key_matches(key: str, patterns: Iterable[str]) -> bool:
-    nk = norm_key(key)
-    return any(norm_key(pattern) in nk for pattern in patterns)
+    normalized = norm_key(key)
+    return any(norm_key(pattern) in normalized for pattern in patterns)
 
 
 def parse_number(value: Any) -> float | None:
     if value is None or isinstance(value, bool):
         return None
     if isinstance(value, (int, float)):
-        return float(value) if math.isfinite(float(value)) else None
+        number = float(value)
+        return number if math.isfinite(number) else None
 
-    text = str(value).strip().replace(",", "").replace(" ", "")
-    if not text or text in {"-", "—", "null", "None"}:
+    original = str(value).strip()
+    text = original.replace(",", "").replace(" ", "")
+    if not text or text in {"-", "—", "null", "None", "nan"}:
         return None
 
     sign = -1 if text.startswith("-") else 1
-    text = text.lstrip("+-")
+    unsigned = text.lstrip("+-")
     total = 0.0
     matched = False
-    units = (("조", 1e12), ("억", 1e8), ("만", 1e4))
-    for unit, multiplier in units:
-        m = re.search(rf"([0-9.]+){unit}", text)
-        if m:
-            total += float(m.group(1)) * multiplier
+    for unit, multiplier in (("조", 1e12), ("억", 1e8), ("만", 1e4)):
+        match = re.search(rf"([0-9]+(?:\.[0-9]+)?){unit}", unsigned)
+        if match:
+            total += float(match.group(1)) * multiplier
             matched = True
     if matched:
         return sign * total
 
-    m = re.search(r"-?[0-9]+(?:\.[0-9]+)?", str(value).replace(",", ""))
-    return float(m.group()) if m else None
+    match = re.search(r"-?[0-9]+(?:\.[0-9]+)?", original.replace(",", ""))
+    return float(match.group()) if match else None
 
 
 def parse_date(value: Any) -> str | None:
@@ -83,20 +95,101 @@ def parse_date(value: Any) -> str | None:
         candidate = re.sub(r"\s.*$", "", candidate)
         for fmt in ("%Y-%m-%d", "%y-%m-%d"):
             try:
-                dt = datetime.strptime(candidate, fmt)
-                if 2000 <= dt.year <= 2100:
-                    return dt.strftime("%Y-%m-%d")
+                parsed = datetime.strptime(candidate, fmt)
+                if 2000 <= parsed.year <= 2100:
+                    return parsed.strftime("%Y-%m-%d")
             except ValueError:
-                pass
+                continue
     return None
+
+
+def date_distance_days(left: str, right: str) -> int:
+    return abs((date.fromisoformat(left) - date.fromisoformat(right)).days)
+
+
+def first_reasonable(values: Iterable[float | None], low: float, high: float) -> float | None:
+    for value in values:
+        if value is not None and low <= value <= high:
+            return value
+    return None
+
+
+@dataclass(frozen=True)
+class Snapshot:
+    date: str | None = None
+    ratio: float | None = None
+    credit_trillion: float | None = None
+    deposit_trillion: float | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "date": self.date,
+            "ratio": self.ratio,
+            "credit_trillion": self.credit_trillion,
+            "deposit_trillion": self.deposit_trillion,
+        }
+
+
+def extract_snapshot(*texts: str) -> Snapshot:
+    joined = "\n".join(text for text in texts if text)
+    compact = re.sub(r"[\t\r]+", " ", joined)
+
+    ratio_matches: list[float | None] = []
+    for pattern in (
+        r"예탁금\s*대비\s*신용(?:\s*비율)?[^0-9]{0,60}([0-9]+(?:\.[0-9]+)?)\s*%",
+        r"신용\s*비율[^0-9]{0,40}([0-9]+(?:\.[0-9]+)?)\s*%",
+        r"ratio[^0-9]{0,15}([0-9]+(?:\.[0-9]+)?)",
+    ):
+        ratio_matches.extend(parse_number(match) for match in re.findall(pattern, compact, flags=re.I | re.S))
+    ratio = first_reasonable(ratio_matches, 5.0, 80.0)
+
+    date_value = None
+    for pattern in (
+        r"기준\s*(20\d{2}[-./]\d{1,2}[-./]\d{1,2})",
+        r"(20\d{2}[-./]\d{1,2}[-./]\d{1,2})\s*기준",
+    ):
+        match = re.search(pattern, compact)
+        if match and (parsed := parse_date(match.group(1))):
+            date_value = parsed
+            break
+
+    def labelled_trillion(label_patterns: tuple[str, ...], low: float, high: float) -> float | None:
+        results: list[float | None] = []
+        labels = "|".join(label_patterns)
+        for match in re.finditer(
+            rf"(?:{labels})[\s\S]{{0,90}}?([0-9]+(?:\.[0-9]+)?)\s*조(?:원)?",
+            compact,
+            flags=re.I,
+        ):
+            results.append(parse_number(match.group(1)))
+        return first_reasonable(results, low, high)
+
+    credit = labelled_trillion(
+        (r"신용융자\s*잔고", r"신용\s*잔고", r"신용거래융자", r"Credit"), 1.0, 100.0
+    )
+    deposit = labelled_trillion(
+        (r"고객예탁금", r"투자자예탁금", r"Deposit"), 10.0, 300.0
+    )
+
+    if credit and deposit:
+        calculated = credit / deposit * 100
+        if ratio is None or abs(calculated - ratio) <= 1.0:
+            ratio = calculated
+
+    return Snapshot(
+        date=date_value,
+        ratio=round(ratio, 4) if ratio is not None else None,
+        credit_trillion=round(credit, 4) if credit is not None else None,
+        deposit_trillion=round(deposit, 4) if deposit is not None else None,
+    )
 
 
 def iter_arrays(node: Any, path: str = "root"):
     if isinstance(node, list):
         if node and all(isinstance(item, dict) for item in node):
             yield path, node
-        for i, item in enumerate(node):
-            yield from iter_arrays(item, f"{path}[{i}]")
+        for index, item in enumerate(node):
+            yield from iter_arrays(item, f"{path}[{index}]")
     elif isinstance(node, dict):
         for key, value in node.items():
             yield from iter_arrays(value, f"{path}.{key}")
@@ -105,140 +198,66 @@ def iter_arrays(node: Any, path: str = "root"):
 def find_key(row: dict[str, Any], patterns: Iterable[str], *, exclude: Iterable[str] = ()) -> str | None:
     scored: list[tuple[int, str]] = []
     for key in row:
-        nk = norm_key(key)
-        if any(norm_key(x) in nk for x in exclude):
+        normalized = norm_key(key)
+        if any(norm_key(item) in normalized for item in exclude):
             continue
         score = 0
         for pattern in patterns:
-            np = norm_key(pattern)
-            if nk == np:
-                score = max(score, 10)
-            elif np in nk:
-                score = max(score, 5)
+            normalized_pattern = norm_key(pattern)
+            if normalized == normalized_pattern:
+                score = max(score, 20)
+            elif normalized.startswith(normalized_pattern) or normalized.endswith(normalized_pattern):
+                score = max(score, 12)
+            elif normalized_pattern in normalized:
+                score = max(score, 7)
         if score:
             scored.append((score, key))
     return max(scored, default=(0, None))[1]
 
 
-@dataclass
-class Candidate:
-    score: float
-    path: str
-    rows: list[dict[str, Any]]
-    date_key: str
-    credit_key: str
-    deposit_key: str
-
-
-def candidate_from_array(path: str, rows: list[dict[str, Any]]) -> Candidate | None:
-    if len(rows) < 2:
-        return None
-    keys: dict[str, int] = {}
-    for row in rows[:30]:
-        for key in row:
-            keys[key] = keys.get(key, 0) + 1
-    representative = {key: None for key in keys}
-
-    date_key = find_key(representative, DATE_KEYS)
-    credit_key = find_key(representative, CREDIT_PATTERNS, exclude=IGNORE_PATTERNS + DEPOSIT_PATTERNS)
-    deposit_key = find_key(representative, DEPOSIT_PATTERNS, exclude=IGNORE_PATTERNS)
-    if not (date_key and credit_key and deposit_key) or credit_key == deposit_key:
-        return None
-
-    valid = 0
-    for row in rows:
-        if parse_date(row.get(date_key)) and parse_number(row.get(credit_key)) is not None and parse_number(row.get(deposit_key)) is not None:
-            valid += 1
-    if valid < 2:
-        return None
-
-    score = valid * 2 + min(len(rows), 200) * 0.1
-    score += keys.get(date_key, 0) + keys.get(credit_key, 0) + keys.get(deposit_key, 0)
-    return Candidate(score, path, rows, date_key, credit_key, deposit_key)
-
-
-def choose_to_trillion(values: list[float], kind: str) -> float:
-    finite = sorted(abs(v) for v in values if v and math.isfinite(v))
-    if not finite:
-        return 1.0
-    median = finite[len(finite) // 2]
-    target = 20.0 if kind == "credit" else 60.0
-    plausible = (0.3, 150.0) if kind == "credit" else (2.0, 500.0)
-    scales = [1.0, 1 / 10, 1 / 100, 1 / 1000, 1 / 10000, 1 / 1e8, 1 / 1e9, 1 / 1e12]
-    ranked = []
-    for scale in scales:
-        result = median * scale
-        penalty = abs(math.log10(max(result, 1e-12) / target))
-        if not (plausible[0] <= result <= plausible[1]):
-            penalty += 5
-        ranked.append((penalty, scale))
-    return min(ranked)[1]
-
-
-def normalize_candidate(candidate: Candidate) -> list[dict[str, float | str]]:
-    parsed = []
-    for row in candidate.rows:
-        date = parse_date(row.get(candidate.date_key))
-        credit = parse_number(row.get(candidate.credit_key))
-        deposit = parse_number(row.get(candidate.deposit_key))
-        if date and credit is not None and deposit is not None and credit > 0 and deposit > 0:
-            parsed.append((date, credit, deposit))
-
-    credit_scale = choose_to_trillion([x[1] for x in parsed], "credit")
-    deposit_scale = choose_to_trillion([x[2] for x in parsed], "deposit")
-
-    by_date: dict[str, dict[str, float | str]] = {}
-    for date, credit_raw, deposit_raw in parsed:
-        credit = credit_raw * credit_scale
-        deposit = deposit_raw * deposit_scale
-        ratio = credit / deposit * 100 if deposit else None
-        if not (0.05 <= credit <= 300 and 0.1 <= deposit <= 1000 and ratio and 0.1 <= ratio <= 300):
-            continue
-        by_date[date] = {
-            "date": date,
-            "credit_trillion": round(credit, 4),
-            "deposit_trillion": round(deposit, 4),
-            "ratio": round(ratio, 4),
-        }
-    return [by_date[key] for key in sorted(by_date)]
-
-
-
 def primitive_list(node: Any) -> list[Any] | None:
-    if isinstance(node, list) and node and all(not isinstance(x, (dict, list)) for x in node):
+    if isinstance(node, list) and node and all(not isinstance(item, (dict, list)) for item in node):
         return node
     return None
 
 
 def extract_parallel_arrays(node: Any, path: str = "root") -> list[tuple[str, list[dict[str, Any]]]]:
-    """labels/dates + credit[] + deposit[]처럼 병렬 배열로 내려오는 응답을 행 구조로 바꾼다."""
     found: list[tuple[str, list[dict[str, Any]]]] = []
     if isinstance(node, dict):
         primitive = {key: primitive_list(value) for key, value in node.items()}
         primitive = {key: value for key, value in primitive.items() if value is not None}
-        date_key = next((key for key in primitive if key_matches(key, DATE_KEYS) or norm_key(key) in {"labels", "categories"}), None)
-        credit_key = next((key for key in primitive if key_matches(key, CREDIT_PATTERNS) and not key_matches(key, IGNORE_PATTERNS + DEPOSIT_PATTERNS)), None)
-        deposit_key = next((key for key in primitive if key_matches(key, DEPOSIT_PATTERNS) and not key_matches(key, IGNORE_PATTERNS)), None)
+
+        date_key = next(
+            (key for key in primitive if key_matches(key, DATE_KEYS) or norm_key(key) in {"labels", "categories", "xaxis"}),
+            None,
+        )
+        credit_key = next(
+            (key for key in primitive if key_matches(key, CREDIT_PATTERNS) and not key_matches(key, IGNORE_PATTERNS + DEPOSIT_PATTERNS)),
+            None,
+        )
+        deposit_key = next(
+            (key for key in primitive if key_matches(key, DEPOSIT_PATTERNS) and not key_matches(key, IGNORE_PATTERNS)),
+            None,
+        )
         if date_key and credit_key and deposit_key:
             dates, credits, deposits = primitive[date_key], primitive[credit_key], primitive[deposit_key]
             size = min(len(dates), len(credits), len(deposits))
-            rows = [
-                {"date": dates[i], "credit": credits[i], "deposit": deposits[i]}
-                for i in range(size)
-            ]
             if size >= 2:
-                found.append((f"{path}:parallel", rows))
+                found.append((
+                    f"{path}:parallel",
+                    [{"date": dates[i], "credit": credits[i], "deposit": deposits[i]} for i in range(size)],
+                ))
 
-        # Chart.js: {labels: [...], datasets: [{label: '신용...', data:[...]}, ...]}
         labels = primitive.get("labels") or primitive.get("categories")
         datasets = node.get("datasets") or node.get("series")
         if labels and isinstance(datasets, list):
-            credit_values = deposit_values = None
-            for series in datasets:
-                if not isinstance(series, dict):
+            credit_values = None
+            deposit_values = None
+            for item in datasets:
+                if not isinstance(item, dict):
                     continue
-                label = series.get("label") or series.get("name") or series.get("title") or ""
-                values = primitive_list(series.get("data")) or primitive_list(series.get("values"))
+                label = item.get("label") or item.get("name") or item.get("title") or ""
+                values = primitive_list(item.get("data")) or primitive_list(item.get("values"))
                 if not values:
                     continue
                 if key_matches(label, CREDIT_PATTERNS) and not key_matches(label, DEPOSIT_PATTERNS + IGNORE_PATTERNS):
@@ -247,148 +266,315 @@ def extract_parallel_arrays(node: Any, path: str = "root") -> list[tuple[str, li
                     deposit_values = values
             if credit_values and deposit_values:
                 size = min(len(labels), len(credit_values), len(deposit_values))
-                rows = [
-                    {"date": labels[i], "credit": credit_values[i], "deposit": deposit_values[i]}
-                    for i in range(size)
-                ]
                 if size >= 2:
-                    found.append((f"{path}:chart-series", rows))
+                    found.append((
+                        f"{path}:chart-series",
+                        [{"date": labels[i], "credit": credit_values[i], "deposit": deposit_values[i]} for i in range(size)],
+                    ))
 
         for key, value in node.items():
             found.extend(extract_parallel_arrays(value, f"{path}.{key}"))
     elif isinstance(node, list):
-        for i, value in enumerate(node):
-            found.extend(extract_parallel_arrays(value, f"{path}[{i}]"))
+        for index, value in enumerate(node):
+            found.extend(extract_parallel_arrays(value, f"{path}[{index}]"))
     return found
 
 
-def extract_separate_series(payloads: list[dict[str, Any]]) -> list[dict[str, float | str]]:
-    """날짜+신용 배열과 날짜+예탁금 배열이 서로 다른 응답/경로에 있을 때 날짜로 결합한다."""
-    credit_series: list[tuple[int, dict[str, float]]] = []
-    deposit_series: list[tuple[int, dict[str, float]]] = []
+@dataclass
+class RawCandidate:
+    path: str
+    rows: list[dict[str, Any]]
+    date_key: str
+    credit_key: str
+    deposit_key: str
+
+
+@dataclass
+class ScoredCandidate:
+    path: str
+    series: list[dict[str, float | str]]
+    score: float
+    details: dict[str, Any]
+
+
+def candidate_from_array(path: str, rows: list[dict[str, Any]]) -> RawCandidate | None:
+    if len(rows) < 2:
+        return None
+    keys = {key for row in rows[:50] for key in row}
+    representative = {key: None for key in keys}
+    date_key = find_key(representative, DATE_KEYS)
+    credit_key = find_key(representative, CREDIT_PATTERNS, exclude=IGNORE_PATTERNS + DEPOSIT_PATTERNS)
+    deposit_key = find_key(representative, DEPOSIT_PATTERNS, exclude=IGNORE_PATTERNS)
+    if not (date_key and credit_key and deposit_key) or credit_key == deposit_key:
+        return None
+
+    valid = sum(
+        1
+        for row in rows
+        if parse_date(row.get(date_key))
+        and parse_number(row.get(credit_key)) is not None
+        and parse_number(row.get(deposit_key)) is not None
+    )
+    if valid < 2:
+        return None
+    return RawCandidate(path, rows, date_key, credit_key, deposit_key)
+
+
+def choose_scale(raw_values: list[float], target: float | None, kind: str) -> float:
+    finite = sorted(abs(value) for value in raw_values if value and math.isfinite(value))
+    if not finite:
+        return 1.0
+    median = finite[len(finite) // 2]
+    target_value = target or (30.0 if kind == "credit" else 100.0)
+    plausible = (0.5, 150.0) if kind == "credit" else (5.0, 500.0)
+
+    ranked: list[tuple[float, float]] = []
+    for scale in SCALES_TO_TRILLION:
+        scaled = median * scale
+        penalty = abs(math.log10(max(scaled, 1e-12) / target_value))
+        if not plausible[0] <= scaled <= plausible[1]:
+            penalty += 10.0
+        ranked.append((penalty, scale))
+    return min(ranked)[1]
+
+
+def normalize_candidate(candidate: RawCandidate, snapshot: Snapshot) -> list[dict[str, float | str]]:
+    parsed: list[tuple[str, float, float]] = []
+    for row in candidate.rows:
+        date_value = parse_date(row.get(candidate.date_key))
+        credit = parse_number(row.get(candidate.credit_key))
+        deposit = parse_number(row.get(candidate.deposit_key))
+        if date_value and credit is not None and deposit is not None and credit > 0 and deposit > 0:
+            parsed.append((date_value, credit, deposit))
+    if len(parsed) < 2:
+        return []
+
+    target_row = None
+    if snapshot.date:
+        target_row = next((row for row in parsed if row[0] == snapshot.date), None)
+    reference_rows = [target_row] if target_row else [parsed[-1]]
+
+    credit_scale = choose_scale(
+        [row[1] for row in reference_rows if row], snapshot.credit_trillion, "credit"
+    )
+    deposit_scale = choose_scale(
+        [row[2] for row in reference_rows if row], snapshot.deposit_trillion, "deposit"
+    )
+
+    by_date: dict[str, dict[str, float | str]] = {}
+    for date_value, raw_credit, raw_deposit in parsed:
+        credit = raw_credit * credit_scale
+        deposit = raw_deposit * deposit_scale
+        ratio = credit / deposit * 100
+        if not (0.5 <= credit <= 150.0 and 5.0 <= deposit <= 500.0 and 0.5 <= ratio <= 100.0):
+            continue
+        by_date[date_value] = {
+            "date": date_value,
+            "credit_trillion": round(credit, 4),
+            "deposit_trillion": round(deposit, 4),
+            "ratio": round(ratio, 4),
+        }
+    return [by_date[key] for key in sorted(by_date)]
+
+
+def score_series(path: str, series: list[dict[str, float | str]], snapshot: Snapshot) -> ScoredCandidate | None:
+    if len(series) < 2:
+        return None
+    latest = series[-1]
+    latest_date = str(latest["date"])
+    score = min(len(series), 500) * 2.0
+    score += min((date.fromisoformat(latest_date) - date.fromisoformat(str(series[0]["date"]))).days, 1000) * 0.1
+
+    normalized_path = norm_key(path)
+    for keyword in ("credit", "balance", "deposit", "kofia", "finance", "stock", "신용", "예탁"):
+        if norm_key(keyword) in normalized_path:
+            score += 100.0
+
+    details: dict[str, Any] = {
+        "rows": len(series),
+        "first_date": series[0]["date"],
+        "latest_date": latest_date,
+        "latest_credit": latest["credit_trillion"],
+        "latest_deposit": latest["deposit_trillion"],
+        "latest_ratio": latest["ratio"],
+    }
+
+    if snapshot.date:
+        distance = date_distance_days(latest_date, snapshot.date)
+        details["date_distance_days"] = distance
+        if distance == 0:
+            score += 20_000
+        elif distance <= 3:
+            score += 10_000 - distance * 500
+        elif distance <= 7:
+            score += 4_000 - distance * 250
+        else:
+            score -= min(distance, 365) * 400
+
+    if snapshot.ratio is not None:
+        difference = abs(float(latest["ratio"]) - snapshot.ratio)
+        details["ratio_difference_pp"] = round(difference, 4)
+        score += max(0.0, 8_000 - difference * 4_000)
+        if difference > 2.0:
+            score -= 10_000
+
+    for field, target, weight in (
+        ("credit_trillion", snapshot.credit_trillion, 5_000.0),
+        ("deposit_trillion", snapshot.deposit_trillion, 5_000.0),
+    ):
+        if target is None:
+            continue
+        actual = float(latest[field])
+        relative_error = abs(actual - target) / target
+        details[f"{field}_relative_error"] = round(relative_error, 5)
+        score += max(0.0, weight - relative_error * 50_000)
+        if relative_error > 0.15:
+            score -= 8_000
+
+    return ScoredCandidate(path, series, score, details)
+
+
+def build_separate_candidates(payloads: list[dict[str, Any]], snapshot: Snapshot) -> list[ScoredCandidate]:
+    credit_series: list[tuple[str, dict[str, float]]] = []
+    deposit_series: list[tuple[str, dict[str, float]]] = []
 
     for payload in payloads:
-        for _, rows in iter_arrays(payload["data"], payload["url"]):
+        for path, rows in iter_arrays(payload["data"], payload["url"]):
             if len(rows) < 2:
                 continue
-            all_keys = {key for row in rows[:30] for key in row}
-            representative = {key: None for key in all_keys}
+            keys = {key for row in rows[:50] for key in row}
+            representative = {key: None for key in keys}
             date_key = find_key(representative, DATE_KEYS)
             if not date_key:
                 continue
             credit_key = find_key(representative, CREDIT_PATTERNS, exclude=IGNORE_PATTERNS + DEPOSIT_PATTERNS)
             deposit_key = find_key(representative, DEPOSIT_PATTERNS, exclude=IGNORE_PATTERNS)
+
             if credit_key:
                 values = {
-                    date: value
+                    parsed_date: parsed_value
                     for row in rows
-                    if (date := parse_date(row.get(date_key))) and (value := parse_number(row.get(credit_key))) is not None and value > 0
+                    if (parsed_date := parse_date(row.get(date_key)))
+                    and (parsed_value := parse_number(row.get(credit_key))) is not None
+                    and parsed_value > 0
                 }
                 if len(values) >= 2:
-                    credit_series.append((len(values), values))
+                    credit_series.append((f"{path}:{credit_key}", values))
             if deposit_key:
                 values = {
-                    date: value
+                    parsed_date: parsed_value
                     for row in rows
-                    if (date := parse_date(row.get(date_key))) and (value := parse_number(row.get(deposit_key))) is not None and value > 0
+                    if (parsed_date := parse_date(row.get(date_key)))
+                    and (parsed_value := parse_number(row.get(deposit_key))) is not None
+                    and parsed_value > 0
                 }
                 if len(values) >= 2:
-                    deposit_series.append((len(values), values))
+                    deposit_series.append((f"{path}:{deposit_key}", values))
 
-    best: tuple[int, dict[str, float], dict[str, float]] | None = None
-    for _, credits in credit_series:
-        for _, deposits in deposit_series:
-            overlap = set(credits) & set(deposits)
-            if len(overlap) >= 2 and (best is None or len(overlap) > best[0]):
-                best = (len(overlap), credits, deposits)
-    if best is None:
-        return []
+    candidates: list[ScoredCandidate] = []
+    for credit_path, credits in credit_series:
+        for deposit_path, deposits in deposit_series:
+            dates = sorted(set(credits) & set(deposits))
+            if len(dates) < 5:
+                continue
+            rows = [{"date": item, "credit": credits[item], "deposit": deposits[item]} for item in dates]
+            raw = RawCandidate(
+                path=f"merged:{credit_path}|{deposit_path}",
+                rows=rows,
+                date_key="date",
+                credit_key="credit",
+                deposit_key="deposit",
+            )
+            normalized = normalize_candidate(raw, snapshot)
+            if scored := score_series(raw.path, normalized, snapshot):
+                candidates.append(scored)
+    return candidates
 
-    _, credits, deposits = best
-    dates = sorted(set(credits) & set(deposits))
-    credit_scale = choose_to_trillion([credits[d] for d in dates], "credit")
-    deposit_scale = choose_to_trillion([deposits[d] for d in dates], "deposit")
-    result = []
-    for date in dates:
-        credit = credits[date] * credit_scale
-        deposit = deposits[date] * deposit_scale
-        ratio = credit / deposit * 100
-        if 0.05 <= credit <= 300 and 0.1 <= deposit <= 1000 and 0.1 <= ratio <= 300:
-            result.append({
-                "date": date,
-                "credit_trillion": round(credit, 4),
-                "deposit_trillion": round(deposit, 4),
-                "ratio": round(ratio, 4),
-            })
-    return result
 
-def regex_fallback(texts: list[str]) -> list[dict[str, float | str]]:
-    # HTML/스크립트 내에 날짜와 두 수치가 한 줄에 직렬화되어 있을 때 사용하는 마지막 보조 수단.
-    joined = "\n".join(texts)
-    pattern = re.compile(
-        r"(?P<date>20\d{2}[-./]?\d{2}[-./]?\d{2}).{0,220}?"
-        r"(?P<credit>[0-9][0-9,.]{2,}).{0,220}?"
-        r"(?P<deposit>[0-9][0-9,.]{2,})",
-        re.S,
-    )
-    raw = []
-    for match in pattern.finditer(joined):
-        date = parse_date(match.group("date"))
-        credit = parse_number(match.group("credit"))
-        deposit = parse_number(match.group("deposit"))
-        if date and credit and deposit:
-            raw.append((date, credit, deposit))
-    if len(raw) < 2:
-        return []
-    credit_scale = choose_to_trillion([r[1] for r in raw], "credit")
-    deposit_scale = choose_to_trillion([r[2] for r in raw], "deposit")
-    result = []
-    for date, c, d in raw:
-        c *= credit_scale
-        d *= deposit_scale
-        ratio = c / d * 100
-        if 0.1 < ratio < 300:
-            result.append({"date": date, "credit_trillion": round(c, 4), "deposit_trillion": round(d, 4), "ratio": round(ratio, 4)})
-    return list({row["date"]: row for row in result}.values())
+def validate_selected(selected: ScoredCandidate, snapshot: Snapshot) -> None:
+    latest = selected.series[-1]
+    problems: list[str] = []
+
+    if snapshot.date:
+        distance = date_distance_days(str(latest["date"]), snapshot.date)
+        if distance > 3:
+            problems.append(f"최신 날짜 불일치: 화면 {snapshot.date}, 후보 {latest['date']}")
+    else:
+        age = (date.today() - date.fromisoformat(str(latest["date"]))).days
+        if age > 14:
+            problems.append(f"최신 데이터가 {age}일 이상 오래되었습니다.")
+
+    if snapshot.ratio is not None and abs(float(latest["ratio"]) - snapshot.ratio) > 0.6:
+        problems.append(f"신용비율 불일치: 화면 {snapshot.ratio:.2f}%, 후보 {float(latest['ratio']):.2f}%")
+
+    for field, target, label in (
+        ("credit_trillion", snapshot.credit_trillion, "신용융자 잔고"),
+        ("deposit_trillion", snapshot.deposit_trillion, "고객예탁금"),
+    ):
+        if target is None:
+            continue
+        actual = float(latest[field])
+        tolerance = max(0.5, target * 0.03)
+        if abs(actual - target) > tolerance:
+            problems.append(f"{label} 불일치: 화면 {target:.2f}조, 후보 {actual:.2f}조")
+
+    recomputed = float(latest["credit_trillion"]) / float(latest["deposit_trillion"]) * 100
+    if abs(recomputed - float(latest["ratio"])) > 0.02:
+        problems.append("최신 행의 비율 계산이 금액과 일치하지 않습니다.")
+
+    if problems:
+        raise RuntimeError("검증 실패 — " + " / ".join(problems))
 
 
 async def main() -> None:
     payloads: list[dict[str, Any]] = []
-    text_payloads: list[str] = []
     response_log: list[dict[str, Any]] = []
-    tasks: set[asyncio.Task] = set()
+    text_payloads: list[str] = []
+    tasks: set[asyncio.Task[Any]] = set()
+    body_text = ""
+    html = ""
+    meta_text = ""
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(headless=True)
         context = await browser.new_context(
             locale="ko-KR",
             timezone_id="Asia/Seoul",
-            viewport={"width": 1440, "height": 1200},
+            viewport={"width": 1440, "height": 1400},
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
             ),
         )
         page = await context.new_page()
 
         async def capture(response: Response) -> None:
+            entry: dict[str, Any] = {
+                "url": response.url,
+                "status": response.status,
+                "resource_type": response.request.resource_type,
+                "content_type": (response.headers.get("content-type") or "").lower(),
+            }
             try:
-                content_type = (response.headers.get("content-type") or "").lower()
-                url = response.url
-                entry = {"url": url, "status": response.status, "content_type": content_type}
-                if "json" in content_type or response.request.resource_type in {"xhr", "fetch"}:
+                should_read = (
+                    response.request.resource_type in {"xhr", "fetch"}
+                    or "json" in entry["content_type"]
+                    or "text/x-component" in entry["content_type"]
+                )
+                if should_read and response.status < 400:
                     body = await response.text()
                     entry["size"] = len(body)
-                    text_payloads.append(body[:2_000_000])
+                    if any(term in body.lower() for term in ("credit", "deposit", "신용", "예탁")):
+                        text_payloads.append(body[:3_000_000])
                     try:
-                        payload = json.loads(body)
-                        payloads.append({"url": url, "data": payload})
+                        payloads.append({"url": response.url, "data": json.loads(body)})
                         entry["json"] = True
                     except json.JSONDecodeError:
                         entry["json"] = False
                 response_log.append(entry)
-            except Exception as exc:  # 네트워크 응답 하나의 실패가 전체 수집을 막지 않게 함
-                response_log.append({"url": response.url, "error": str(exc)})
+            except Exception as exc:
+                entry["error"] = str(exc)
+                response_log.append(entry)
 
         def on_response(response: Response) -> None:
             task = asyncio.create_task(capture(response))
@@ -398,94 +584,108 @@ async def main() -> None:
         page.on("response", on_response)
         await page.goto(SOURCE_URL, wait_until="domcontentloaded", timeout=90_000)
         try:
-            await page.wait_for_load_state("networkidle", timeout=45_000)
+            await page.wait_for_function(
+                r"""() => {
+                  const text = document.body?.innerText || '';
+                  return /신용융자\s*잔고/.test(text) && /[0-9]+(?:\.[0-9]+)?\s*조/.test(text);
+                }""",
+                timeout=60_000,
+            )
         except Exception:
             pass
-        await page.wait_for_timeout(8_000)
+        try:
+            await page.wait_for_load_state("networkidle", timeout=30_000)
+        except Exception:
+            pass
+        await page.wait_for_timeout(5_000)
+
         body_text = await page.locator("body").inner_text()
         html = await page.content()
-        text_payloads.extend([body_text, html])
-
-        # Next.js에 인라인으로 포함된 상태 데이터도 수집한다.
-        inline_json = await page.evaluate("""
-          () => Array.from(document.scripts)
-            .map(s => s.textContent || '')
-            .filter(t => t.length > 20 && (t.includes('credit') || t.includes('deposit') || t.includes('예탁') || t.includes('신용')))
-        """)
-        text_payloads.extend(inline_json)
-        for text in inline_json:
+        meta_text = await page.evaluate(
+            """() => Array.from(document.querySelectorAll('meta'))
+              .map(meta => meta.content || '')
+              .filter(Boolean)
+              .join('\n')"""
+        )
+        inline_scripts = await page.evaluate(
+            """() => Array.from(document.scripts)
+              .map(script => script.textContent || '')
+              .filter(text => text.length > 20 && /credit|deposit|신용|예탁/i.test(text))"""
+        )
+        text_payloads.extend([body_text, html, meta_text, *inline_scripts])
+        for text in inline_scripts:
             try:
                 payloads.append({"url": "inline-script", "data": json.loads(text)})
             except Exception:
-                pass
+                continue
 
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
         await browser.close()
 
-    candidates: list[Candidate] = []
+    snapshot = extract_snapshot(body_text, meta_text, html)
+    if not snapshot.date or snapshot.ratio is None:
+        raise RuntimeError(
+            "페이지에 표시된 최신 기준일 또는 신용비율을 읽지 못했습니다. "
+            "debug_capture.json의 body_preview를 확인하세요."
+        )
+
+    scored_candidates: list[ScoredCandidate] = []
+    seen_paths: set[str] = set()
     for payload in payloads:
         for path, rows in iter_arrays(payload["data"], payload["url"]):
-            candidate = candidate_from_array(path, rows)
-            if candidate:
-                candidates.append(candidate)
+            if raw := candidate_from_array(path, rows):
+                normalized = normalize_candidate(raw, snapshot)
+                if scored := score_series(raw.path, normalized, snapshot):
+                    scored_candidates.append(scored)
+                    seen_paths.add(raw.path)
         for path, rows in extract_parallel_arrays(payload["data"], payload["url"]):
-            candidate = candidate_from_array(path, rows)
-            if candidate:
-                candidates.append(candidate)
+            if path in seen_paths:
+                continue
+            if raw := candidate_from_array(path, rows):
+                normalized = normalize_candidate(raw, snapshot)
+                if scored := score_series(raw.path, normalized, snapshot):
+                    scored_candidates.append(scored)
 
-    series: list[dict[str, float | str]] = []
-    selected: dict[str, Any] | None = None
-    for candidate in sorted(candidates, key=lambda x: x.score, reverse=True):
-        normalized = normalize_candidate(candidate)
-        if len(normalized) >= 2:
-            series = normalized
-            selected = {
-                "path": candidate.path,
-                "score": candidate.score,
-                "date_key": candidate.date_key,
-                "credit_key": candidate.credit_key,
-                "deposit_key": candidate.deposit_key,
-                "rows": len(series),
-            }
-            break
-
-    if not series:
-        series = extract_separate_series(payloads)
-        if series:
-            selected = {"method": "merged_separate_series", "rows": len(series)}
-
-    if not series:
-        series = sorted(regex_fallback(text_payloads), key=lambda row: row["date"])
-        if series:
-            selected = {"method": "regex_fallback", "rows": len(series)}
+    scored_candidates.extend(build_separate_candidates(payloads, snapshot))
+    scored_candidates.sort(key=lambda item: item.score, reverse=True)
 
     debug = {
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "source": SOURCE_URL,
-        "selected": selected,
-        "candidate_count": len(candidates),
+        "visible_snapshot": snapshot.as_dict(),
+        "candidate_count": len(scored_candidates),
+        "top_candidates": [
+            {"path": candidate.path, "score": round(candidate.score, 2), **candidate.details}
+            for candidate in scored_candidates[:15]
+        ],
         "responses": response_log,
-        "body_preview": body_text[:5000],
+        "body_preview": body_text[:12_000],
+        "meta_preview": meta_text[:3_000],
     }
     DEBUG.write_text(json.dumps(debug, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    if len(series) < 2:
-        raise RuntimeError(
-            "신용융자 잔고와 고객예탁금 시계열을 찾지 못했습니다. "
-            "Actions 실행 결과의 debug_capture.json 아티팩트를 확인하세요."
-        )
+    if not scored_candidates:
+        raise RuntimeError("날짜·신용융자·고객예탁금이 함께 있는 시계열 후보를 찾지 못했습니다.")
+
+    selected = scored_candidates[0]
+    validate_selected(selected, snapshot)
+    series = selected.series
+    latest = series[-1]
 
     output = {
         "source": SOURCE_URL,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "unit": "trillion_krw",
+        "verified_against": snapshot.as_dict(),
+        "latest": latest,
         "series": series,
     }
     OUTPUT.write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
+
     print(f"Saved {len(series)} rows to {OUTPUT}")
-    print(f"Selected: {selected}")
-    latest = series[-1]
+    print(f"Selected: {selected.path}")
+    print(f"Visible snapshot: {snapshot.as_dict()}")
     print(
         f"Latest {latest['date']}: credit={latest['credit_trillion']}조, "
         f"deposit={latest['deposit_trillion']}조, ratio={latest['ratio']}%"
