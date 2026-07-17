@@ -1,7 +1,7 @@
 {
   "source": "https://www.hangon.co.kr/credit-balance",
   "history_source": "https://finance.naver.com/sise/sise_deposit.naver",
-  "updated_at": "2026-07-17T07:25:39.838266+00:00",
+  "updated_at": "2026-07-17T11:55:36.874672+00:00",
   "unit": "trillion_krw",
   "range": "latest_6_calendar_months",
   "collection_mode": "snapshot_append",
