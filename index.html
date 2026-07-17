@@ -1,100 +1,90 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>신용잔고·고객예탁금 대시보드</title>
-  <meta name="description" content="예탁금 대비 신용 비율과 신용융자 잔고·고객예탁금 추세" />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="stylesheet" href="style.css?v=7.0.0" />
+  <meta name="description" content="예탁금 대비 신용비율과 신용융자 잔고·고객예탁금">
+  <link rel="stylesheet" href="style.css?v=8.0.0">
 </head>
 <body>
   <main class="shell">
-    <section class="hero panel" aria-labelledby="heroTitle">
-      <div class="hero-copy">
-        <p class="eyebrow">KOREA MARKET LEVERAGE</p>
-        <h1 id="heroTitle">예탁금 대비 신용 비율</h1>
-        <div class="hero-value-row">
-          <strong id="heroRatio" class="hero-value">—%</strong>
-          <span id="ratioState" class="state-pill neutral">데이터 확인 중</span>
-          <span id="ratioChange" class="change-pill neutral">전일 비교 없음</span>
-        </div>
-        <p id="asOfText" class="as-of">최신 데이터 확인 중</p>
+    <section class="panel ratio-panel" aria-labelledby="ratioTitle">
+      <p class="eyebrow">MARKET LEVERAGE</p>
+      <h1 id="ratioTitle">예탁금 대비 신용비율</h1>
+
+      <div class="ratio-line">
+        <strong id="ratioValue" class="ratio-value">—%</strong>
+        <span id="ratioState" class="state-pill neutral">데이터 확인 중</span>
       </div>
-      <div class="formula-card" aria-label="비율 계산식">
-        <span>신용융자 잔고</span>
-        <b>÷</b>
-        <span>고객예탁금</span>
-        <em>× 100</em>
+
+      <p id="stateDescription" class="state-description">신용비율을 기준 구간과 비교하고 있습니다.</p>
+      <p id="ratioChange" class="ratio-change">전일 비교 없음</p>
+      <p id="asOfText" class="as-of">최신 데이터 확인 중</p>
+
+      <div class="formula">
+        신용융자 잔고 ÷ 고객예탁금 × 100
       </div>
     </section>
 
-    <section class="panel chart-panel" aria-labelledby="chartHeading">
-      <div class="chart-head">
+    <section class="metric-grid" aria-label="최신 신용 및 예탁금">
+      <article class="panel metric-card credit-card">
         <div>
-          <p class="eyebrow">TREND</p>
-          <h2 id="chartHeading">예탁금·신용 추세 <small>최근 6개월</small></h2>
+          <p class="metric-label">신용융자 잔고</p>
+          <p class="metric-help">투자자가 증권사에서 빌려 주식을 산 금액</p>
         </div>
-        <div class="latest-values" aria-label="최신 수치">
-          <div class="latest-card credit-card">
-            <span>신용융자 잔고</span>
-            <strong id="latestCredit">—</strong>
-          </div>
-          <div class="latest-card deposit-card">
-            <span>고객예탁금</span>
-            <strong id="latestDeposit">—</strong>
-          </div>
-        </div>
-      </div>
+        <strong id="latestCredit" class="metric-value">—</strong>
+      </article>
 
-      <div class="tabs" role="tablist" aria-label="차트 선택">
-        <button class="tab active" type="button" role="tab" aria-selected="true" data-view="ratio">신용비율</button>
-        <button class="tab" type="button" role="tab" aria-selected="false" data-view="compare">신용 VS 예탁금</button>
-      </div>
-
-      <div class="chart-wrap">
-        <canvas id="trendChart" aria-label="신용비율과 신용융자 잔고 및 고객예탁금 추세 차트"></canvas>
-        <div id="emptyState" class="empty-state hidden">
-          <strong>정확한 시계열을 수집하는 중입니다.</strong>
-          <span>GitHub Actions에서 ‘신용잔고 데이터 자동 갱신’을 한 번 실행해 주세요.</span>
+      <article class="panel metric-card deposit-card">
+        <div>
+          <p class="metric-label">고객예탁금</p>
+          <p class="metric-help">주식 매수를 위해 증권계좌에 대기 중인 자금</p>
         </div>
-      </div>
-      <p id="chartCaption" class="chart-caption">신용융자 잔고 ÷ 고객예탁금 × 100으로 다시 계산한 비율입니다.</p>
+        <strong id="latestDeposit" class="metric-value">—</strong>
+      </article>
     </section>
 
     <section class="panel guide" aria-labelledby="guideTitle">
-      <div>
-        <p class="eyebrow">HOW TO READ</p>
-        <h2 id="guideTitle">지표 읽는 법</h2>
-      </div>
+      <p class="eyebrow">HOW TO READ</p>
+      <h2 id="guideTitle">지표 읽는 법</h2>
+      <p class="guide-intro">현재 신용비율을 아래 기준과 비교해 시장의 레버리지 부담을 판단합니다.</p>
+
       <div class="guide-grid">
-        <article class="guide-stable">
-          <h3>~20% · 매우 안정</h3>
-          <p>예탁금 대비 신용 부담이 낮아 과열 리스크가 상대적으로 적습니다.</p>
+        <article class="guide-card stable" data-state="stable">
+          <div class="guide-range">25% 미만</div>
+          <h3>매우 안정</h3>
+          <p>예탁금 대비 신용 부담이 낮아 과열 위험이 상대적으로 적습니다.</p>
         </article>
-        <article class="guide-normal">
-          <h3>25% ~ 35% · 일반 수준</h3>
-          <p>개인 투자 심리가 살아 있지만, 아직 과도한 레버리지 구간은 아닙니다.</p>
+
+        <article class="guide-card normal" data-state="normal">
+          <div class="guide-range">25% 이상 · 35% 미만</div>
+          <h3>일반 수준</h3>
+          <p>투자 심리가 살아 있지만 과도한 레버리지 구간은 아닙니다.</p>
         </article>
-        <article class="guide-warning">
-          <h3>35% ~ 40% · 주의 구간</h3>
-          <p>신용 부담이 커지는 구간으로 급락 시 반대매매 리스크를 함께 봐야 합니다.</p>
+
+        <article class="guide-card warning" data-state="warning">
+          <div class="guide-range">35% 이상 · 40% 미만</div>
+          <h3>주의 구간</h3>
+          <p>신용 부담이 커져 급락 시 반대매매 위험을 함께 확인해야 합니다.</p>
         </article>
-        <article class="guide-danger">
-          <h3>40% ~ · 위험 구간</h3>
-          <p>레버리지 과열 가능성이 커져 시장 충격에 취약해질 수 있습니다.</p>
+
+        <article class="guide-card danger" data-state="danger">
+          <div class="guide-range">40% 이상</div>
+          <h3>위험 구간</h3>
+          <p>레버리지 과열 가능성이 높아 시장 충격에 취약할 수 있습니다.</p>
         </article>
       </div>
     </section>
 
     <footer>
       <span id="updatedAt">업데이트 정보 없음</span>
-      <a href="https://www.hangon.co.kr/credit-balance" target="_blank" rel="noopener noreferrer">최신값: Hang on! · 과거 시계열: 금융투자협회 계열</a>
+      <a href="https://www.hangon.co.kr/credit-balance" target="_blank" rel="noopener noreferrer">출처: Hang on!</a>
     </footer>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
-  <script src="app.js?v=7.0.0" defer></script>
+  <script src="app.js?v=8.0.0" defer></script>
 </body>
 </html>
